@@ -1,0 +1,67 @@
+template bgp interior from bgp_base {
+    local {{ internal_ipv6 }};
+    confederation member yes;
+}
+
+template bgp backbone from interior {
+    ipv4 {
+        import where is_internal() || is_dn42_default();
+        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
+    };
+    ipv6 {
+        import where is_internal() || is_dn42_default();
+        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
+    };
+}
+
+template bgp access from interior {
+    ipv4 {
+        import where is_internal();
+        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
+    };
+    ipv6 {
+        import where is_internal();
+        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
+    };
+}
+
+template bgp service_advertisement from interior {
+    dynamic name "int_svc_dyn";
+    ipv4 {
+        import filter {
+            if is_internal() then {
+                # We must set the next-hop to self since the next-hop
+                # IP we are provided is probably that of a container
+                # and is not in the IGP.
+                bgp_next_hop = {{ internal_ipv6 }};
+                accept;
+            } else reject;
+        };
+        export none;
+    };
+    ipv6 {
+        import filter {
+            if is_internal() then {
+                # See above.
+                bgp_next_hop = {{ internal_ipv6 }};
+                accept;
+            } else reject;
+        };
+        export none;
+    };
+}
+
+protocol static defaults4 {
+    ipv4 {
+        preference 50;
+    };
+    route {{ internal_net_v4 }} unreachable;
+    route {{ private_net_v4 }} unreachable;
+}
+
+protocol static defaults6 {
+    ipv6 {
+        preference 50;
+    };
+    route {{ internal_net_v6 }} unreachable;
+}

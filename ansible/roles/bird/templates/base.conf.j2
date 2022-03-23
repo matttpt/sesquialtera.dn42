@@ -1,0 +1,139 @@
+log syslog all;
+timeformat base     iso long;
+timeformat log      iso long;
+timeformat protocol iso long;
+timeformat route    iso long;
+
+router id {{ internal_ipv4 }};
+
+function is_internal() {
+    return net ~ {{ internal_net_v4 }}
+        || net ~ {{ private_net_v4 }}
+        || net ~ {{ internal_net_v6 }};
+}
+
+function is_dn42() {
+    return net ~ 172.20.0.0/14
+        || net ~ 172.31.0.0/16
+        || net ~ 10.0.0.0/8
+        || net ~ fd00::/8;
+}
+
+function is_dn42_default() {
+    return net = 172.20.0.0/14
+        || net = 172.31.0.0/16
+        || net = 10.0.0.0/8
+        || net = fd00::/8;
+}
+
+protocol device {
+}
+
+protocol direct loopback4 {
+    ipv4 {
+        import where is_internal();
+    };
+    interface "{{ loopback_if }}";
+}
+
+{% if endpoint_ifs|default([]) %}
+protocol direct endpoints {
+    ipv4 {
+        import where is_internal();
+    };
+    ipv6 {
+        import where is_internal();
+    };
+    interface {% set comma = joiner() %}{% for if in endpoint_ifs %}{{ comma() }}"{{ if }}"{% endfor %};
+}
+{% endif %}
+
+template bgp bgp_base {
+    local as {{ bgp_as }};
+    confederation {{ bgp_confed }};
+    hold time 90;
+    startup hold time 90;
+    ipv4 {
+        extended next hop;
+    };
+}
+
+include "kernel.conf";
+include "ospf.conf";
+include "{{ router_role }}.conf";
+{% if rip_ifs is defined %}
+include "rip.conf";
+{% endif %}
+{% if radv_ifs is defined %}
+include "radv.conf";
+{% endif %}
+
+# The following are BGP peers in the same sub-AS as this router.
+{% for host in groups.all %}
+{% if hostvars[host].bgp_as == bgp_as and host != inventory_hostname %}
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
+    neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
+}
+{% endif %}
+{% endfor %}
+
+{% if bgp_as == 4200000001 %}
+# The following are BGP peers outside AS4200000001 (the sub-AS for
+# independent VPSes) that nevertheless peer with all members of
+# AS4200000001.
+{% for host in groups.all %}
+{% if hostvars[host].bgp_peer_with_as4200000001|default(false) %}
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
+    neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
+    multihop 1;
+}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if bgp_peer_with_as4200000001|default(false) and bgp_as != 4200000001 %}
+# The following are BGP peers in the sub-AS for independent VPSes,
+# AS4200000001.
+{% for host in groups.all %}
+{% if hostvars[host].bgp_as == 4200000001 %}
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
+    neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
+    multihop 1;
+}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+# The following are manually configured BGP peers.
+{% for peer in bgp_manual_peers|default([]) %}
+protocol bgp {{ peer.name }} from {{ peer.template }} {
+{% if peer.local is defined %}
+    local {{ peer.local }};
+{% endif %}
+    neighbor {{ peer.neighbor }} as {{ peer.as }};
+{% if peer.interface is defined %}
+    interface "{{ peer.interface }}";
+{% endif %}
+{% if peer.multihop|default(false) %}
+    multihop;
+{% endif %}
+{% if peer.override_import is defined or peer.override_export is defined %}
+    ipv4 {
+{% if peer.override_import is defined %}
+        import {{ peer.override_import }};
+{% endif %}
+{% if peer.override_export is defined %}
+        export {{ peer.override_export }};
+{% endif %}
+    };
+    ipv6 {
+{% if peer.override_import is defined %}
+        import {{ peer.override_import }};
+{% endif %}
+{% if peer.override_export is defined %}
+        export {{ peer.override_export }};
+{% endif %}
+    };
+{% endif %}
+}
+{% endfor %}

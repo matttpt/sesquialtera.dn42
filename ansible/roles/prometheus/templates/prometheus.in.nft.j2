@@ -1,0 +1,2 @@
+meta obrname "dbr-general" tcp dport 9090 ip daddr {{ unicast_ips.prometheus[inventory_hostname].ipv4 }} ip saddr $INTERNAL_NETS_V4 accept
+meta obrname "dbr-general" tcp dport 9090 ip6 daddr {{ unicast_ips.prometheus[inventory_hostname].ipv6 }} ip6 saddr $INTERNAL_NETS_V6 accept

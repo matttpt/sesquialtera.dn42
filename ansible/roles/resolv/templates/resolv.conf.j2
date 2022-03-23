@@ -1,0 +1,4 @@
+{% for ipv4 in anycast_ips.rdns.ipv4 %}
+nameserver {{ ipv4 }}
+{% endfor %}
+nameserver 8.8.8.8

@@ -1,0 +1,9 @@
+---
+
+- name: remove exim4
+  apt:
+    pkg:
+    - exim4
+    - exim4-daemon-light
+    state: absent
+    purge: yes

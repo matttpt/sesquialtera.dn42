@@ -1,0 +1,99 @@
+---
+
+# These variables serve as a "poor man's service discovery" mechanism.
+# Here are their functions right now:
+#
+# 1. This provides the anycast addresses of the authoritative and
+#    recursive DNS servers, so things like /etc/resolv.conf can be
+#    generated.
+#
+# 2. This configures the unicast IP addresses of containers by
+#    application and host. Ansible tasks use this information to set
+#    static IP addresses for containers.
+#
+# 3. This provides container IP information to nftables templates, so
+#    that specific inter-application firewall policies can be generated
+#    (e.g. allowing containers of one application to talk only to the IP
+#    addresses of containers belonging to another application).
+#
+# 4. This is used to generate a list of backend endpoints for the
+#    ingresses.
+#
+# 5. The prometheus_apps variable is used to generate a list of scrape
+#    endpoints for Prometheus.
+#
+# At some point I may attempt to set up a real service discovery
+# mechanism and make the firewall generation dynamic. Indeed, I'm
+# basically reinventing a poor version of several Kubernetes features
+# here! But for now, this is working alright, especially since the
+# environment is mostly statically placed infrastructure stuff at the
+# moment.
+
+# Anycast IP addresses of applications.
+anycast_ips:
+  adns:
+    ipv4:
+    - 172.23.71.61
+    - 172.23.71.62
+    ipv6:
+    - fda0:281f:5817:53::1
+    - fda0:281f:5817:53::2
+  rdns:
+    ipv4:
+    - 192.168.53.1
+    - 192.168.53.2
+    ipv6:
+    - fda0:281f:5817::53
+    - fda0:281f:5817::54
+  ingress-dn42:
+    ipv4: 172.23.71.60
+    ipv6: fda0:281f:5817::42
+  ingress-public:
+    ipv4: 192.168.80.1
+    ipv6: fda0:281f:5817::80
+
+# Unicast IP addresses of applications. These are specified on a
+# per-host basis, since the unicast address of a container must fall
+# within the network assigned to its host.
+unicast_ips:
+  adns:
+    us-oxc-bb-1.sesquialtera.dn42:
+      ipv4: 192.168.16.53
+      ipv6: fda0:281f:5817:10::53
+    us-oxc-ac-1.sesquialtera.dn42:
+      ipv4: 192.168.18.53
+      ipv6: fda0:281f:5817:12::53
+  rdns:
+    us-oxc-bb-1.sesquialtera.dn42:
+      ipv4: 192.168.16.54
+      ipv6: fda0:281f:5817:10::54
+    us-oxc-ac-1.sesquialtera.dn42:
+      ipv4: 192.168.18.54
+      ipv6: fda0:281f:5817:12::54
+  prometheus:
+    us-oxc-ac-1.sesquialtera.dn42:
+      ipv4: 192.168.18.90
+      ipv6: fda0:281f:5817:12::9090
+  grafana:
+    us-oxc-ac-1.sesquialtera.dn42:
+      ipv4: 192.168.18.30
+      ipv6: fda0:281f:5817:12::3000
+  ingress-dn42:
+    us-lga-bb-1.sesquialtera.dn42:
+      ipv4: 192.168.1.42
+      ipv6: fda0:281f:5817:1::42
+    us-oxc-bb-1.sesquialtera.dn42:
+      ipv4: 192.168.16.42
+      ipv6: fda0:281f:5817:10::42
+  ingress-public:
+    us-lga-bb-1.sesquialtera.dn42:
+      ipv4: 192.168.1.80
+      ipv6: fda0:281f:5817:1::80
+
+# This configures Prometheus to scrape the containers belonging to these
+# applications (using their unicast addresses) on a specified port.
+prometheus_apps:
+- name: ingress-dn42
+  port: 9080
+- name: ingress-public
+  port: 9080

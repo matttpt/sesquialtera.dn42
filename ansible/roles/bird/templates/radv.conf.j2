@@ -1,0 +1,17 @@
+protocol radv {
+    propagate routes yes;
+    ipv6 {
+        export where is_dn42_default() && (source ~ [RTS_STATIC, RTS_BGP]);
+    };
+    prefix ::/0 {
+        skip yes;
+    };
+{% for if in radv_ifs %}
+    interface "{{ if }}" {
+        default lifetime 0;
+        prefix {{ radv_ifs[if] }} {
+            skip no;
+        };
+    };
+{% endfor %}
+}

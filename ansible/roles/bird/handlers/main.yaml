@@ -1,0 +1,16 @@
+---
+
+- name: reload bird
+  service:
+    name: bird
+    state: reloaded
+
+- name: restart exporter
+  service:
+    name: prometheus-bird-exporter
+    state: restarted
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded

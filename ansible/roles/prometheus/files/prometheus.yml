@@ -1,0 +1,35 @@
+---
+
+global:
+  scrape_interval: 1m
+
+scrape_configs:
+- job_name: 'prometheus'
+  scrape_interval: 5s
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: 'node'
+  file_sd_configs:
+  - files:
+    - 'file_sds/node-targets.yml'
+  relabel_configs:
+  # Remove the port from the instance label
+  - source_labels: [__address__]
+    regex: "([^:]+):\\d+"
+    target_label: instance
+
+- job_name: 'bird'
+  file_sd_configs:
+  - files:
+    - 'file_sds/bird-targets.yml'
+  # Remove the port from the instance label
+  relabel_configs:
+  - source_labels: [__address__]
+    regex: "([^:]+):\\d+"
+    target_label: instance
+
+- job_name: 'apps'
+  file_sd_configs:
+  - files:
+    - 'file_sds/app-targets.yml'

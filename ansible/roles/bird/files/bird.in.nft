@@ -1,0 +1,5 @@
+ip6 nexthdr ospf accept
+tcp dport bgp accept
+udp dport { 520, 521 } accept
+tcp dport 9324 ip saddr $INTERNAL_NETS_V4 accept
+tcp dport 9324 ip6 saddr $INTERNAL_NETS_V6 accept

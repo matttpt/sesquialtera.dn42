@@ -1,0 +1,5 @@
+---
+
+rdns_ipv4: '{{ anycast_ips.rdns.ipv4[1] }}'
+rdns_ipv6: '{{ anycast_ips.rdns.ipv6[1] }}'
+

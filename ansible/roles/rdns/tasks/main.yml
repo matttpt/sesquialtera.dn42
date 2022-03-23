@@ -1,0 +1,68 @@
+---
+
+- name: create recursive dns configuration storage directory
+  file:
+    path: /usr/local/etc/unbound
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: copy unbound configuration file
+  template:
+    src: unbound.conf.j2
+    dest: /usr/local/etc/unbound/unbound.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart unbound
+  tags: conf
+
+- name: create and start unbound container
+  docker_container:
+    name: rdns
+    image: mvance/unbound:1.15.0
+    restart_policy: unless-stopped
+    volumes:
+    - '/usr/local/etc/unbound:/opt/unbound/etc/unbound'
+    networks:
+    - name: general
+      ipv4_address: '{{ unicast_ips.rdns[inventory_hostname].ipv4 }}'
+      ipv6_address: '{{ unicast_ips.rdns[inventory_hostname].ipv6 }}'
+    networks_cli_compatible: yes
+    network_mode: general
+    container_default_behavior: no_defaults
+
+- name: create and start unbound service advertisement sidecar
+  docker_container:
+    name: rdns-sa
+    image: service-advertisement:20220323
+    restart_policy: unless-stopped
+    capabilities:
+    - net_admin
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+    env:
+      SA_LOCAL_AS: '4200000000'
+      SA_CONFED: '"{{ bgp_confed }}"'
+      SA_NEIGHBOR: '{{ internal_ipv6 }}'
+      SA_PEER_AS: '"{{ bgp_as }}"'
+      SA_IPV4: '{{ rdns_ipv4 }}'
+      SA_IPV6: '{{ rdns_ipv6 }}'
+      SA_HEALTHCHECK_COMMAND: "dig +short @:: 127.in-addr.arpa soa | grep -v '^$' >/dev/null"
+      SA_HEALTHCHECK_INTERVAL: '5'
+      SA_HEALTHCHECK_TIMEOUT: '3'
+      SA_HEALTHCHECK_MAX_FAIL_COUNT: '2'
+    networks_cli_compatible: yes
+    network_mode: container:rdns
+    container_default_behavior: no_defaults
+
+- name: copy firewall rules for recursive dns traffic
+  template:
+    src: rdns.nft.j2
+    dest: /etc/nftables/br-in.d/rdns.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall

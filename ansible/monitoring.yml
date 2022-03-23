@@ -1,0 +1,24 @@
+---
+
+# This playbook installs the Prometheus + Grafana monitoring stack.
+#
+# However, note that Prometheus exporters are installed when the
+# components they expose are installed, not here.
+
+- name: install prometheus
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: us-oxc-ac-1.sesquialtera.dn42
+  roles:
+  - prometheus
+  tags: prometheus
+
+- name: install grafana
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: us-oxc-ac-1.sesquialtera.dn42
+  roles:
+  - grafana
+  tags: grafana

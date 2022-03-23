@@ -1,0 +1,4 @@
+meta obrname "dbr-general" tcp dport { http, https } ip daddr { {{ anycast_ips['ingress-' + ingress_name].ipv4 }}, {{ unicast_ips['ingress-' + ingress_name][inventory_hostname].ipv4 }} } accept
+meta obrname "dbr-general" tcp dport { http, https } ip6 daddr { {{ anycast_ips['ingress-' + ingress_name].ipv6 }}, {{ unicast_ips['ingress-' + ingress_name][inventory_hostname].ipv6 }} } accept
+meta obrname "dbr-general" tcp dport 9080 ip daddr {{ unicast_ips['ingress-' + ingress_name][inventory_hostname].ipv4 }} ip saddr $INTERNAL_NETS_V4 accept
+meta obrname "dbr-general" tcp dport 9080 ip6 daddr {{ unicast_ips['ingress-' + ingress_name][inventory_hostname].ipv6 }} ip6 saddr $INTERNAL_NETS_V6 accept

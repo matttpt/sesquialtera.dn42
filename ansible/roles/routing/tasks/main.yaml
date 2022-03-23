@@ -1,0 +1,10 @@
+---
+
+- name: install sysctl configuration for routing
+  copy:
+    src: routing.conf
+    dest: /etc/sysctl.d/routing.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload sysctl

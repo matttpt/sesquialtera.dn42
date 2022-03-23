@@ -1,0 +1,15 @@
+---
+
+# This playbook installs authoritative DNS servers on configured hosts.
+# Note that these are for DN42 only. They do not serve the public
+# sesquialtera.net domain.
+#
+# You can find the actual zone files in the files/ subdirectory.
+
+- name: provision authoritative dns
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: adns
+  roles:
+  - adns

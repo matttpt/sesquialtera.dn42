@@ -1,0 +1,11 @@
+---
+
+# This playbook installs Docker on configured hosts.
+
+- name: install docker on docker servers
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: dockers
+  roles:
+  - docker

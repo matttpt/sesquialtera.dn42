@@ -1,0 +1,26 @@
+protocol kernel kernel4 {
+    ipv4 {
+        import none;
+        export filter {
+            if source !~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ] then reject;
+
+            # IPv6 source selection will choose ULA addresses when
+            # the destination is a ULA address, so the internal
+            # loopback address is selected. However, with IPv4, the
+            # kernel may try to choose an external IPv4 address as the
+            # source when extended (IPv6) next-hops are in use. This
+            # instructs the kernel to prefer our internal IPv4 address
+            # as the source on any routes BIRD installs, which fixes the
+            # problem.
+            krt_prefsrc = {{ internal_ipv4 }};
+            accept;
+        };
+    };
+}
+
+protocol kernel kernel6 {
+    ipv6 {
+        import none;
+        export where source ~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ];
+    };
+}

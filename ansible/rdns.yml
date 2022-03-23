@@ -1,0 +1,21 @@
+---
+
+# This playbook installs recursive DNS servers on configured hosts
+# and updates /etc/resolv.conf on all hosts.
+
+- name: provision recursive dns containers
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: rdns
+  roles:
+  - rdns
+
+- name: install resolv.conf
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: all
+  roles:
+  - resolv
+  tags: resolv

@@ -1,0 +1,6 @@
+{% set ports = wg_ifs|map(attribute='port')|select('defined')|list %}
+{% if ports != [] %}
+udp dport { {{ ports|join(',') }} } accept
+{% else %}
+# No interfaces are configured with listening ports.
+{% endif %}

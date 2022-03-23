@@ -1,0 +1,6 @@
+{% set ports = wg_ifs|map(attribute='peers')|flatten|map(attribute='endpoint_port')|select('defined')|unique %}
+{% if ports|length > 0 %}
+udp dport { {{ ports|join(', ') }} } accept
+{% else %}
+# No interfaces are configured with peer endpoints.
+{% endif %}

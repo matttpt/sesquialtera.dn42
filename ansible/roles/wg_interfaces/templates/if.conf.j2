@@ -1,0 +1,20 @@
+{% if item.port is defined %}
+[Interface]
+ListenPort = {{ item.port }}
+{% endif %}
+
+{% for peer in item.peers %}
+[Peer]
+{% if peer.host is defined %}
+PublicKey = {{ hostvars[peer.host].wg_public_key }}
+{% else %}
+PublicKey = {{ peer.public_key }}
+{% endif %}
+{% if (peer.endpoint_address is defined) or (peer.endpoint_port is defined) %}
+EndPoint = {{ peer.endpoint_address }}:{{ peer.endpoint_port }}
+{% endif %}
+{% if peer.keepalive is defined %}
+PersistentKeepalive = {{ peer.keepalive }}
+{% endif %}
+AllowedIPs = {{ peer.allowed_ips }}
+{% endfor %}

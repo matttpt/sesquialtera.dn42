@@ -1,0 +1,114 @@
+server:
+  access-control: {{ internal_net_v4 }} allow
+  access-control: {{ private_net_v4 }} allow
+  access-control: {{ internal_net_v6 }} allow
+  auto-trust-anchor-file: var/root.key
+  chroot: /opt/unbound/etc/unbound
+  directory: /opt/unbound/etc/unbound
+  do-daemonize: no
+  domain-insecure: dn42
+  domain-insecure: hack
+  domain-insecure: neo
+  interface-automatic: yes
+  local-zone: 10.in-addr.arpa. nodefault
+  local-zone: 20.172.in-addr.arpa. nodefault
+  local-zone: 21.172.in-addr.arpa. nodefault
+  local-zone: 22.172.in-addr.arpa. nodefault
+  local-zone: 23.172.in-addr.arpa. nodefault
+  local-zone: 31.172.in-addr.arpa. nodefault
+  local-zone: 168.192.in-addr.arpa. nodefault
+  local-zone: d.f.ip6.arpa. nodefault
+  username: '_unbound'
+
+########################################################################
+# LOCAL ZONES - we'd like for them to work even if DN42 DNS is down    #
+########################################################################
+
+{% for zone in adns_zones %}
+stub-zone:
+  name: {{ zone.name }}.
+{% for ipv4 in anycast_ips.adns.ipv4 %}
+  stub-addr: {{ ipv4 }}
+{% endfor %}
+{% for ipv6 in anycast_ips.adns.ipv6 %}
+  stub-addr: {{ ipv6 }}
+{% endfor %}
+  stub-prime: yes
+
+{% endfor %}
+########################################################################
+# DN42 ZONES                                                           #
+########################################################################
+
+stub-zone:
+  name: dn42.
+  stub-addr: 172.20.129.1
+  stub-addr: 172.20.14.34
+  stub-addr: 172.20.1.254
+  stub-addr: fd42:4242:2601:ac53::1
+  stub-addr: fdcf:8538:9ad5:1111::2
+  stub-addr: fd42:5d71:219:0:216:3eff:fe1e:22d6
+  stub-prime: yes
+
+{% for x in [20, 21, 22, 23] %}
+stub-zone:
+  name: {{ x }}.172.in-addr.arpa.
+  stub-addr: 172.20.129.1
+  stub-addr: 172.20.14.34
+  stub-addr: 172.20.1.254
+  stub-addr: fd42:4242:2601:ac53::1
+  stub-addr: fdcf:8538:9ad5:1111::2
+  stub-addr: fd42:5d71:219:0:216:3eff:fe1e:22d6
+  stub-prime: yes
+
+{% endfor %}
+stub-zone:
+  name: d.f.ip6.arpa.
+  stub-addr: 172.20.129.1
+  stub-addr: 172.20.14.34
+  stub-addr: 172.20.1.254
+  stub-addr: fd42:4242:2601:ac53::1
+  stub-addr: fdcf:8538:9ad5:1111::2
+  stub-addr: fd42:5d71:219:0:216:3eff:fe1e:22d6
+  stub-prime: yes
+
+########################################################################
+# CHAOSVPN ZONES                                                       #
+########################################################################
+
+stub-zone:
+  name: hack.
+  stub-addr: 172.31.0.5
+  stub-prime: yes
+
+stub-zone:
+  name: 31.172.in-addr.arpa.
+  stub-addr: 172.31.0.5
+  stub-prime: yes
+
+{% for x in [100, 101, 102, 103] %}
+stub-zone:
+  name: {{ x }}.10.in-addr.arpa.
+  stub-addr: 172.31.0.5
+  stub-prime: yes
+
+{% endfor %}
+########################################################################
+# NEONETWORK ZONES                                                     #
+########################################################################
+
+stub-zone:
+  name: neo.
+  stub-addr: 10.127.255.53
+  stub-addr: fd10:127:ffff:53::
+  stub-prime: yes
+
+stub-zone:
+  name: 127.10.in-addr.arpa.
+  stub-addr: 10.127.255.53
+  stub-addr: fd10:127:ffff:53::
+  # As of March 2022, NeoNetwork DNS appears to be misconfigured.
+  # NeoPDP-11.neo. (10.127.255.1) is listed as the nameserver for this
+  # zone, but it doesn't respond. Therefore, keep using the nameservers
+  # configured here.
+  stub-prime: no

@@ -1,0 +1,28 @@
+$ORIGIN 7.1.8.5.f.1.8.2.0.a.d.f.ip6.arpa.
+
+@ 86400 IN SOA  ns1.sesquialtera.dn42. matttpt.gmail.com. 2022032100 900 300 864000 900
+  86400 IN NS   ns1.sesquialtera.dn42.
+  86400 IN NS   ns2.sesquialtera.dn42.
+
+; Network infrastructure
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR us-lga-bb-1.sesquialtera.dn42.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0 86400 IN PTR us-lga-bb-1.sesquialtera.dn42.
+0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR us-oxc-bb-1.sesquialtera.dn42.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0 86400 IN PTR us-oxc-bb-1.sesquialtera.dn42.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.f.f 86400 IN PTR us-oxc-bb-1.sesquialtera.dn42.
+2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR us-oxc-ac-1.sesquialtera.dn42.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.1.0.0 86400 IN PTR us-oxc-ac-1.sesquialtera.dn42.
+
+; Application: authoritative DNS
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.5.0.0 86400 IN PTR ns1.sesquialtera.dn42.
+2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.5.0.0 86400 IN PTR ns2.sesquialtera.dn42.
+
+; Application: recursive DNS
+3.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR rdns1.sesquialtera.dn42.
+4.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR rdns2.sesquialtera.dn42.
+
+; Application: DN42 HTTP(S) ingress
+2.4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR ingress-dn42.sesquialtera.dn42.
+
+; Application: public HTTP(S) ingress
+0.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0 86400 IN PTR ingress-public.sesquialtera.dn42.

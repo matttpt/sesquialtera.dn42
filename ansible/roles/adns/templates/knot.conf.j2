@@ -1,0 +1,14 @@
+server:
+    listen: 0.0.0.0@53
+    listen: ::@53
+
+zone:
+{% for zone in adns_zones %}
+- domain: {{ zone.name }}
+  storage: /storage/zones
+  file: {{ zone.file }}
+{% endfor %}
+
+log:
+- target: stdout
+  any: info

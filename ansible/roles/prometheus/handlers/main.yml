@@ -1,0 +1,12 @@
+---
+
+- name: restart prometheus
+  docker_container:
+    name: prometheus
+    restart: yes
+    container_default_behavior: no_defaults
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded

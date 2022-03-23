@@ -1,0 +1,10 @@
+---
+
+{% for app in prometheus_apps|default([]) %}
+- targets:
+{% for host in unicast_ips[app.name] %}
+  - '[{{ unicast_ips[app.name][host].ipv6 }}]:{{ app.port }}'
+{% endfor %}
+  labels:
+   app: {{ app.name }}
+{% endfor %}

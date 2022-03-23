@@ -1,0 +1,71 @@
+---
+
+- name: add manually configured interfaces to the interface list
+  set_fact:
+    wg_ifs: '{{ wg_manual_ifs|default([]) }}'
+
+- name: generate interfaces for the wireguard mesh
+  set_fact:
+    wg_ifs: |
+        {{
+            wg_ifs|default([]) + [{
+                'name': 'int-' + hostvars[item].inventory_hostname_short,
+                'address_v6': wg_mesh_address + '/64',
+                'port': hostvars[item].wg_mesh_port,
+                'peers': [{
+                  'host': item,
+                  'allowed_ips': '0.0.0.0/0,::/0',
+                  'endpoint_address': hostvars[item].wg_mesh_endpoint_address,
+                  'endpoint_port': wg_mesh_port
+                }]
+            }]
+        }}
+  when:
+  - item != inventory_hostname
+  - item not in wg_mesh_exclude|default([])
+  - inventory_hostname not in hostvars[item].wg_mesh_exclude|default([])
+  loop: '{{ groups.wg_mesh }}'
+
+- name: install wireguard /etc/network/interfaces configuration
+  template:
+    src: wireguard-interfaces.conf.j2
+    dest: /etc/network/interfaces.d/wireguard.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload wireguard interfaces
+
+- name: install wireguard interface configuration files
+  template:
+    src: if.conf.j2
+    dest: /etc/wireguard/{{ item.name }}.conf
+    owner: root
+    group: root
+    mode: '0644'
+  loop: '{{ wg_ifs }}'
+  notify: reload wireguard interfaces
+
+- name: ensure that /etc/network/interfaces.d files are imported
+  lineinfile:
+    path: /etc/network/interfaces
+    line: 'source /etc/network/interfaces.d/*'
+    state: present
+  notify: reload wireguard interfaces
+
+- name: configure inbound firewall for wireguard
+  template:
+    src: wireguard.in.nft.j2
+    dest: /etc/nftables/in.d/wireguard.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+
+- name: configure outbound firewall for wireguard
+  template:
+    src: wireguard.out.nft.j2
+    dest: /etc/nftables/out.d/wireguard.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall

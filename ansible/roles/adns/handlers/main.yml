@@ -1,0 +1,11 @@
+---
+
+# Hopefully at some point we can replace this with the newer
+# docker_container_exec module.
+- name: reload knot
+  command: docker exec adns knotc reload
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded

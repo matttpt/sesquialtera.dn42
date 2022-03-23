@@ -1,0 +1,100 @@
+---
+
+- name: create prometheus configuration directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+  - /usr/local/etc/prometheus
+  - /usr/local/etc/prometheus/file_sds
+
+- name: copy prometheus configuration
+  copy:
+    src: prometheus.yml
+    dest: /usr/local/etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart prometheus
+  tags: conf
+
+- name: copy prometheus node targets
+  template:
+    src: node-targets.yml.j2
+    dest: /usr/local/etc/prometheus/file_sds/node-targets.yml
+    owner: root
+    group: root
+    mode: '0644'
+  tags: targets
+
+- name: copy prometheus bird targets
+  template:
+    src: bird-targets.yml.j2
+    dest: /usr/local/etc/prometheus/file_sds/bird-targets.yml
+    owner: root
+    group: root
+    mode: '0644'
+  tags: targets
+
+- name: copy prometheus app targets
+  template:
+    src: app-targets.yml.j2
+    dest: /usr/local/etc/prometheus/file_sds/app-targets.yml
+    owner: root
+    group: root
+    mode: '0644'
+  tags: targets
+
+- name: create prometheus volume
+  docker_volume:
+    name: prometheus-data
+
+- name: create and start prometheus container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus:v2.34.0
+    restart_policy: unless-stopped
+    command:
+    # NOTE: these arguments are taken from the Prometheus Dockerfile,
+    # (with the exception of the retention time configuration).
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=90d
+    - --web.console.libraries=/usr/share/prometheus/console_libraries
+    - --web.console.templates=/usr/share/prometheus/consoles
+    volumes:
+    - 'prometheus-data:/prometheus'
+    - '/usr/local/etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml'
+    - '/usr/local/etc/prometheus/file_sds:/etc/prometheus/file_sds'
+    networks:
+    - name: general
+      ipv4_address: '{{ unicast_ips.prometheus[inventory_hostname].ipv4 }}'
+      ipv6_address: '{{ unicast_ips.prometheus[inventory_hostname].ipv6 }}'
+    networks_cli_compatible: yes
+    network_mode: general
+    container_default_behavior: no_defaults
+
+- name: install inbound firewall rules for prometheus
+  template:
+    src: prometheus.in.nft.j2
+    dest: /etc/nftables/br-in.d/prometheus.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall
+
+- name: install outbound firewall rules for prometheus
+  template:
+    src: prometheus.out.nft.j2
+    dest: /etc/nftables/br-out.d/prometheus.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags:
+  - firewall
+  - targets

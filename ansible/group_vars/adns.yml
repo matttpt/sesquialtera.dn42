@@ -1,0 +1,16 @@
+---
+
+adns_zones:
+- name: sesquialtera.dn42
+  file: sesquialtera.dn42.zone
+- name: 7.1.8.5.f.1.8.2.0.a.d.f.ip6.arpa
+  file: 7.1.8.5.f.1.8.2.0.a.d.f.ip6.arpa.zone
+- name: 32/27.71.23.172.in-addr.arpa
+  file: 32_27.71.23.172.in-addr.arpa.zone
+- name: 168.192.in-addr.arpa
+  file: 168.192.in-addr.arpa.zone
+
+# The ADNS service advertisement container periodically looks up the NS
+# records for this zone to determine whether the ADNS server container
+# is healthy.
+adns_healthcheck_zone: sesquialtera.dn42

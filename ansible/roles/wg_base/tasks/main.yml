@@ -1,0 +1,31 @@
+---
+
+- name: install wireguard
+  apt:
+    pkg: wireguard
+    state: present
+
+- name: generate private key
+  shell:
+    cmd: wg genkey >private_key && chmod 400 private_key
+    chdir: /etc/wireguard
+    creates: /etc/wireguard/private_key
+
+- name: generate public key
+  shell:
+    cmd: wg pubkey <private_key >public_key
+    chdir: /etc/wireguard
+    creates: /etc/wireguard/public_key
+  register: generate_public_key
+
+- name: fetch public key
+  slurp:
+    src: /etc/wireguard/public_key
+  register: public_key_slurp
+  when: generate_public_key.changed
+
+- name: display public key
+  debug:
+    msg: '{{ inventory_hostname }} has new public key {{ public_key_slurp.content | b64decode | trim }}'
+  when: generate_public_key.changed
+

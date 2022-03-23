@@ -1,0 +1,11 @@
+---
+
+- name: reload ssh
+  service:
+    name: ssh
+    state: reloaded
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded

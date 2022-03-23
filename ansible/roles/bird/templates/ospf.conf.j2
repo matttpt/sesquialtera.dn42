@@ -1,0 +1,55 @@
+protocol ospf v3 ospf6 {
+{% if router_role != 'backbone' %}
+    stub router yes;
+{% endif %}
+    ipv6 {
+        import where is_internal();
+        export none;
+    };
+    area 0 {
+        interface "{{ loopback_if }}" {
+            stub;
+        };
+
+{% if inventory_hostname in groups.wg_mesh %}
+{% for host in groups.wg_mesh %}
+{% if (host != inventory_hostname)
+   and (host not in wg_mesh_exclude|default([]))
+   and (inventory_hostname not in hostvars[host].wg_mesh_exclude|default([]))
+%}
+        interface "int-{{ hostvars[host].inventory_hostname_short }}" {
+            type ptmp;
+            neighbors {
+                {{ hostvars[host].wg_mesh_address }};
+            };
+            cost 1000;
+        };
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% for if in ospf_manual_ifs|default([]) %}
+        interface "{{ if.name }}" {
+{% if if.type|default(false) %}
+            type {{ if.type }};
+{% endif %}
+{% if if.neighbors is defined and if.neighbors|length > 0 %}
+            neighbors {
+{% for neighbor in if.neighbors %}
+                {{ neighbor }};
+{% endfor %}
+            };
+{% endif %}
+{% if if.stub|default(false) %}
+            stub;
+{% endif %}
+{% if if.cost|default(false) %}
+            cost {{ if.cost }};
+{% endif %}
+{% if if.hello|default(false) %}
+            hello {{ if.hello }};
+{% endif %}
+        };
+{% endfor %}
+    };
+}

@@ -1,0 +1,43 @@
+{% for domain in ingress_static_domains|default([]) %}
+{{ domain.name }} {
+    encode zstd gzip
+    root * /srv/{{ domain.name }}
+{% if domain.browse|default(false) %}
+    file_server browse
+{% else %}
+    file_server
+{% endif %}
+{% if ingress_tls_issuer is defined %}
+    tls {
+        issuer {{ ingress_tls_issuer }}
+    }
+{% endif %}
+}
+
+{% endfor %}
+{% for domain in ingress_proxy_domains|default([]) %}
+{{ domain.name }} {
+    encode zstd gzip
+    reverse_proxy {{ unicast_ips[domain.backend].values()|map(attribute='ipv6')|unique|join(' ') }}
+{% if ingress_tls_issuer is defined %}
+    tls {
+        issuer {{ ingress_tls_issuer }}
+    }
+{% endif %}
+}
+
+{% endfor %}
+{% for domain in ingress_redir_domains|default([]) %}
+{{ domain.name }} {
+    redir {{ domain.target }}{uri} permanent
+{% if ingress_tls_issuer is defined %}
+    tls {
+        issuer {{ ingress_tls_issuer }}
+    }
+{% endif %}
+}
+
+{% endfor %}
+:9080 {
+    metrics /metrics
+}

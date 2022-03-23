@@ -1,0 +1,12 @@
+---
+
+# This playbook installs the base system configuration (e.g. user
+# accounts, MOTD, firewall) on all hosts.
+
+- name: install base system
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: all
+  roles:
+  - base

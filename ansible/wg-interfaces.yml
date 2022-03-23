@@ -1,0 +1,18 @@
+---
+
+# This playbook configures Wireguard interfaces. It presupposes the
+# following:
+#
+# - Wireguard has been installed on the target hosts.
+# - The wg_public_key host variables for all peers of the target hosts
+#   have been configured.
+#
+# Thus, you may need to run the wg-base.yml playbook first!
+
+- name: set up wireguard
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: wireguards
+  roles:
+  - wg_interfaces

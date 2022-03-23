@@ -1,0 +1,174 @@
+roa4 table roa_v4;
+roa6 table roa_v6;
+
+filter to_backbone {
+    if (is_internal() && source = RTS_DEVICE) || source = RTS_BGP then {
+        if from !~ {{ internal_net_v6 }} then {
+            # We set next-hop to self when the route is learned from
+            # outside our network. We do it this way because BIRD's
+            # "next hop self ebgp" will set next-hop to self even for
+            # intra-confederation eBGP neighbors, which we don't want
+            # (since we are running a single IGP).
+            bgp_next_hop = {{ internal_ipv6 }};
+        }
+        accept;
+    } else {
+        reject;
+    }
+}
+
+filter to_access {
+    if (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ]) || (is_dn42_default() && source = RTS_STATIC) then {
+        if from !~ {{ internal_net_v6 }} then {
+            # Same deal as above.
+            bgp_next_hop = {{ internal_ipv6 }};
+        }
+        accept;
+    } else {
+        reject;
+    }
+}
+
+filter from_exterior {
+    if is_internal() then reject;
+    if !is_dn42() then reject;
+    if net ~ 0.0.0.0/0 && roa_check(roa_v4, net, bgp_path.last) != ROA_VALID then {
+        reject "ROA check failed for ", net, " AS ", bgp_path.last;
+    }
+    if net ~ ::/0 && roa_check(roa_v6, net, bgp_path.last) != ROA_VALID then {
+        reject "ROA check failed for ", net, " AS ", bgp_path.last;
+    }
+    accept;
+}
+
+filter to_exterior {
+    if !is_dn42() then reject;
+    else if net ~ {{ internal_net_v4 }} then {
+        if net != {{ internal_net_v4 }} then reject;
+        if source != RTS_STATIC then reject;
+{% if dn42_region is defined %}
+        bgp_community.add((64511, {{ dn42_region }}));
+{% endif %}
+    } else if net ~ {{ internal_net_v6 }} then {
+        if net != {{ internal_net_v6 }} then reject;
+        if source != RTS_STATIC then reject;
+{% if dn42_region is defined %}
+        bgp_community.add((64511, {{ dn42_region }}));
+{% endif %}
+    } else if source != RTS_BGP then reject;
+    accept;
+}
+
+template bgp interior from bgp_base {
+    local {{ internal_ipv6 }};
+    confederation member yes;
+}
+
+template bgp backbone from interior {
+    ipv4 {
+        import all;
+        export filter to_backbone;
+    };
+    ipv6 {
+        import all;
+        export filter to_backbone;
+    };
+}
+
+template bgp access from interior {
+    ipv4 {
+        import where is_internal();
+        export filter to_access;
+    };
+    ipv6 {
+        import where is_internal();
+        export filter to_access;
+    };
+}
+
+template bgp service_advertisement from interior {
+    dynamic name "int_svc_dyn";
+    ipv4 {
+        import filter {
+            if is_internal() then {
+                # We must set the next-hop to self since the next-hop
+                # IP we are provided is probably that of a container
+                # and is not in the IGP.
+                bgp_next_hop = {{ internal_ipv6 }};
+                accept;
+            } else reject;
+        };
+        export none;
+    };
+    ipv6 {
+        import filter {
+            if is_internal() then {
+                # See above.
+                bgp_next_hop = {{ internal_ipv6 }};
+                accept;
+            } else reject;
+        };
+        export none;
+    };
+}
+
+template bgp exterior from bgp_base {
+    ipv4 {
+        receive limit 2000 action block;
+        import filter from_exterior;
+        export filter to_exterior;
+
+        # The import (Adj-RIB-In) table is turned on, so that we hold
+        # on to any routes that failed ROA checks. This way, if the ROA
+        # data is updated, we don't have to do a full route refresh to
+        # start accepting routes that now validate.
+        import table on;
+
+        # This will waste a little memory, since "import table on"
+        # already keeps filtered routes, but this will cause filtered
+        # routes to show up in our metrics.
+        import keep filtered;
+    };
+    ipv6 {
+        receive limit 2000 action block;
+        import filter from_exterior;
+        export filter to_exterior;
+
+        # Same as above.
+        import table on;
+        import keep filtered;
+    };
+}
+
+protocol static defaults4 {
+    ipv4 {
+        preference 50;
+    };
+    route {{ private_net_v4 }} unreachable;
+    route {{ internal_net_v4 }} unreachable;
+    route 172.20.0.0/14 unreachable;
+    route 172.31.0.0/16 unreachable;
+    route 10.0.0.0/8 unreachable;
+}
+
+protocol static defaults6 {
+    ipv6 {
+        preference 50;
+    };
+    route {{ internal_net_v6 }} unreachable;
+    route fd00::/8 unreachable;
+}
+
+protocol static dn42_roa4 {
+    roa4 {
+        table roa_v4;
+    };
+    include "dn42_roa_bird2_4.conf";
+}
+
+protocol static dn42_roa6 {
+    roa6 {
+        table roa_v6;
+    };
+    include "dn42_roa_bird2_6.conf";
+}

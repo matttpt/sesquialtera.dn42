@@ -1,0 +1,14 @@
+---
+
+# The "internal" IPv4 network is the DN42 allocation; the "private" IPv4
+# network is additional IPv4 space not routable on DN42. For network
+# policy purposes, both ranges count as "internal."
+internal_net_v4: 172.23.71.32/27
+private_net_v4: 192.168.0.0/16
+
+# The IPv6 situation is fortunately different, since our supply of
+# DN42-routable addresses is very large!
+internal_net_v6: fda0:281f:5817::/48
+
+# Our external DN42 autonomous system number.
+bgp_confed: 4242420703

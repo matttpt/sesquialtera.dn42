@@ -1,0 +1,6 @@
+meta ibrname "dbr-general" tcp dport { 9100, 9324 } ip saddr {{ unicast_ips.prometheus[inventory_hostname].ipv4 }} ip daddr $INTERNAL_NETS_V4 accept
+meta ibrname "dbr-general" tcp dport { 9100, 9324 } ip6 saddr {{ unicast_ips.prometheus[inventory_hostname].ipv6 }} ip6 daddr $INTERNAL_NETS_V6 accept
+
+{% for app in prometheus_apps|default([]) %}
+meta ibrname "dbr-general" tcp dport {{ app.port }} ip6 saddr {{ unicast_ips.prometheus[inventory_hostname].ipv6}} ip6 daddr { {{ unicast_ips[app.name].values()|map(attribute='ipv6')|join(',') }} } accept
+{% endfor %}

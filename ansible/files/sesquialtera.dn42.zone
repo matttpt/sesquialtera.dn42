@@ -1,0 +1,38 @@
+$ORIGIN sesquialtera.dn42.
+
+@               86400 IN SOA    ns1 matttpt.gmail.com. 2022032100 900 300 864000 900
+                86400 IN NS     ns1
+                86400 IN NS     ns2
+
+; Network infrastructure
+us-lga-bb-1     86400 IN A      172.23.71.33
+                86400 IN AAAA   fda0:281f:5817::1
+us-oxc-bb-1     86400 IN A      172.23.71.48
+                86400 IN AAAA   fda0:281f:5817::10
+us-oxc-ac-1     86400 IN A      172.23.71.50
+                86400 IN AAAA   fda0:281f:5817::12
+
+; Application: authoritative DNS
+ns1             86400 IN A      172.23.71.61
+                86400 IN AAAA   fda0:281f:5817:53::1
+ns2             86400 IN A      172.23.71.62
+                86400 IN AAAA   fda0:281f:5817:53::2
+
+; Application: recursive DNS
+rdns1           86400 IN A      192.168.53.1
+                86400 IN AAAA   fda0:281f:5817::53
+rdns2           86400 IN A      192.168.53.2
+                86400 IN AAAA   fda0:281f:5817::54
+
+; Application: DN42 HTTP(S) ingress
+ingress-dn42    86400 IN A      172.23.71.60
+                86400 IN AAAA   fda0:281f:5817::42
+
+; Applications: DN42-accessible web sites
+@               86400 IN A      172.23.71.60
+                86400 IN AAAA   fda0:281f:5817::42
+grafana         86400 IN CNAME  ingress-dn42
+www             86400 IN CNAME  ingress-dn42
+
+; Application: public HTTP(S) ingress
+ingress-public  86400 IN A      192.168.80.1

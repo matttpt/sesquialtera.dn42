@@ -1,0 +1,24 @@
+---
+
+- name: create admin group
+  group:
+    name: '{{ admin_group }}'
+    gid: '{{ admin_gid }}'
+
+- name: create admin user
+  user:
+    name: '{{ admin_user }}'
+    comment: '{{ admin_name }},,,'
+    uid: '{{ admin_uid }}'
+    group: '{{ admin_group }}'
+    groups: sudo
+    append: yes
+    shell: /bin/bash
+
+- name: configure admin input
+  copy:
+    dest: /home/{{ admin_user }}/.inputrc
+    content: "set editing-mode vi\n"
+    owner: '{{ admin_user }}'
+    group: '{{ admin_group }}'
+    mode: '0644'

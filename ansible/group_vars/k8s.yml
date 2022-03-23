@@ -1,0 +1,9 @@
+---
+
+k8s_pod_net_v4: 192.168.128.0/24
+k8s_pod_net_v6: fda0:281f:5817:80::/61
+k8s_svc_net_v4: 192.168.129.0/24
+k8s_svc_net_v6: fda0:281f:5817:88::/112
+k8s_version: 1.23.3
+crio_version: 1.23
+k8s_cp_group: k8s_cps

@@ -1,0 +1,2 @@
+meta obrname "dbr-general" meta l4proto { tcp, udp } th dport domain ip daddr { {{ adns_ipv4 }}, {{ unicast_ips.adns[inventory_hostname].ipv4 }} } accept
+meta obrname "dbr-general" meta l4proto { tcp, udp } th dport domain ip6 daddr { {{ adns_ipv6 }}, {{ unicast_ips.adns[inventory_hostname].ipv6 }} } accept

@@ -1,0 +1,27 @@
+---
+
+- name: stop rdns service advertisement container
+  listen: restart unbound
+  docker_container:
+    name: rdns-sa
+    state: stopped
+    container_default_behavior: no_defaults
+
+- name: restart unbound container
+  listen: restart unbound
+  docker_container:
+    name: rdns
+    restart: yes
+    container_default_behavior: no_defaults
+
+- name: start rdns service advertisement container
+  listen: restart unbound
+  docker_container:
+    name: rdns-sa
+    state: started
+    container_default_behavior: no_defaults
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded

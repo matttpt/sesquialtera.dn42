@@ -1,0 +1,4 @@
+---
+
+adns_ipv4: '{{ anycast_ips.adns.ipv4[0] }}'
+adns_ipv6: '{{ anycast_ips.adns.ipv6[0] }}'

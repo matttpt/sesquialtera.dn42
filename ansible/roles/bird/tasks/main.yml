@@ -1,0 +1,138 @@
+---
+
+- name: install bird2
+  apt:
+    pkg: bird2
+    default_release: bullseye-backports
+    state: present
+
+- name: install prometheus-bird-exporter
+  apt:
+    pkg: prometheus-bird-exporter
+    state: present
+
+- name: install bird base configuration
+  template:
+    src: base.conf.j2
+    dest: /etc/bird/bird.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+
+- name: install bird kernel configuration
+  template:
+    src: kernel.conf.j2
+    dest: /etc/bird/kernel.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+
+- name: install bird ospf configuration
+  template:
+    src: ospf.conf.j2
+    dest: /etc/bird/ospf.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+
+- name: install bird role configuration
+  template:
+    src: '{{ router_role }}.conf.j2'
+    dest: /etc/bird/{{ router_role }}.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+
+- name: install bird rip configuration
+  template:
+    src: rip.conf.j2
+    dest: /etc/bird/rip.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  when: rip_ifs is defined
+  tags: conf
+
+- name: install bird radv configuration
+  template:
+    src: radv.conf.j2
+    dest: /etc/bird/radv.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  when: radv_ifs is defined
+  tags: conf
+
+- name: install script to update dn42 roa data
+  copy:
+    src: update-dn42-roa.sh
+    dest: /usr/local/bin/update-dn42-roa.sh
+    owner: bird
+    group: bird
+    mode: '0700'
+  when: router_role == 'backbone'
+
+- name: download initial dn42 roa data
+  command:
+    cmd: /usr/local/bin/update-dn42-roa.sh
+    creates: /etc/bird/dn42_roa_bird2_*.conf
+  when: router_role == 'backbone'
+
+- name: install cron job to periodically update dn42 roa data
+  cron:
+    name: Update DN42 ROA data
+    user: root
+    minute: "0"
+    hour: '*/3'
+    job: 'sleep $(shuf -i 0-600 -n 1) && /usr/local/bin/update-dn42-roa.sh'
+  when: router_role == 'backbone'
+
+- name: configure prometheus bird exporter for bird2
+  lineinfile:
+    path: /etc/default/prometheus-bird-exporter
+    regexp: '^ARGS='
+    line: 'ARGS="-format.new -bird.v2"'
+  notify: restart exporter
+  tags: conf
+
+- name: enable bird
+  service:
+    name: bird
+    state: started
+    enabled: yes
+
+- name: enable prometheus bird exporter
+  service:
+    name: prometheus-bird-exporter
+    state: started
+    enabled: yes
+
+- name: install inbound firewall rules for bird
+  copy:
+    src: bird.in.nft
+    dest: /etc/nftables/in.d/bird.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall
+
+- name: install outbound firewall rules for bird
+  copy:
+    src: bird.out.nft
+    dest: /etc/nftables/out.d/bird.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall

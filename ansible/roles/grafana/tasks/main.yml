@@ -1,0 +1,42 @@
+---
+
+- name: create grafana volume
+  docker_volume:
+    name: grafana-data
+
+- name: create and start grafana container
+  docker_container:
+    name: grafana
+    image: grafana/grafana:8.4.4
+    restart_policy: unless-stopped
+    volumes:
+    - 'grafana-data:/var/lib/grafana'
+    env:
+      GF_SERVER_HTTP_PORT: '80'
+    networks:
+    - name: general
+      ipv4_address: '{{ unicast_ips.grafana[inventory_hostname].ipv4 }}'
+      ipv6_address: '{{ unicast_ips.grafana[inventory_hostname].ipv6 }}'
+    networks_cli_compatible: yes
+    network_mode: general
+    container_default_behavior: no_defaults
+
+- name: install inbound firewall rules for grafana
+  template:
+    src: grafana.in.nft.j2
+    dest: /etc/nftables/br-in.d/grafana.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall
+
+- name: install outbound firewall rules for grafana
+  template:
+    src: grafana.out.nft.j2
+    dest: /etc/nftables/br-out.d/grafana.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall

@@ -1,0 +1,55 @@
+---
+
+- import_tasks: accounts.yml
+
+- name: add bullseye-security repository
+  apt_repository:
+    repo: deb http://security.debian.org/debian-security bullseye-security main
+    state: present
+    update_cache: yes
+
+- name: install basic software
+  apt:
+    pkg:
+    - bind9-dnsutils
+    - ca-certificates
+    - htop
+    - iotop
+    - less
+    - netcat-openbsd
+    - sudo
+    - vim
+    - wget
+    state: present
+
+- name: install hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: install hostname
+  copy:
+    dest: /etc/hostname
+    content: "{{ inventory_hostname_short }}\n"
+  register: hostname
+
+- name: set hostname
+  command: /bin/hostname -F /etc/hostname
+  when: hostname.changed
+
+- import_tasks: firewall.yml
+  tags: firewall
+- import_tasks: mail.yml
+- import_tasks: ssh.yml
+- import_tasks: prometheus.yml
+
+- name: install motd
+  template:
+    src: motd.j2
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: '0644'

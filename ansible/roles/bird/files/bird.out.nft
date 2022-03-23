@@ -1,0 +1,3 @@
+ip6 nexthdr ospf accept
+tcp dport bgp accept
+udp dport { 520, 521 } accept

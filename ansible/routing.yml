@@ -1,0 +1,12 @@
+---
+
+# This playbook configures routing (including BIRD) on all hosts.
+
+- name: install routing
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: all
+  roles:
+  - routing
+  - bird

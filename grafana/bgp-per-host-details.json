@@ -1,0 +1,628 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.4.3"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1647466507178,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "8.4.3",
+      "targets": [
+        {
+          "exemplar": false,
+          "expr": "count(bird_protocol_up{name=~\"dn42_.+\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}) or vector(0)",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "DN42 peers",
+          "refId": "A"
+        },
+        {
+          "exemplar": false,
+          "expr": "count(bird_protocol_up{name=~\"int_.*\",name!~\"int_svc.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}) or vector(0)",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Internal peers",
+          "refId": "B"
+        },
+        {
+          "exemplar": false,
+          "expr": "count(bird_protocol_up{name=~\"int_svc_.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}) or vector(0)",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Internal service peers",
+          "refId": "C"
+        },
+        {
+          "exemplar": false,
+          "expr": "sum(bird_protocol_prefix_preferred_count{proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"})",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Preferred  prefixes",
+          "refId": "D"
+        }
+      ],
+      "title": "BGP statistics",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "bird_protocol_prefix_preferred_count{proto=\"BGP\",name=~\"(dn42|int_).+\",name!~\"int_svc.*\",instance=\"$instance\",ip_version=\"$ip_version\"}",
+          "interval": "",
+          "legendFormat": "{{ name }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Preferred prefixes per non-service peer",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "frameIndex": 13,
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Peer"
+          }
+        ]
+      },
+      "pluginVersion": "8.4.3",
+      "targets": [
+        {
+          "exemplar": false,
+          "expr": "bird_protocol_prefix_import_count{proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\",name!=\"int_svc\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "Imported"
+        },
+        {
+          "exemplar": false,
+          "expr": "bird_protocol_prefix_filter_count{proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\",name!=\"int_svc\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "Filtered"
+        },
+        {
+          "exemplar": false,
+          "expr": "bird_protocol_prefix_preferred_count{proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\",name!=\"int_svc\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "Preferred"
+        },
+        {
+          "exemplar": false,
+          "expr": "bird_protocol_prefix_export_count{proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\",name!=\"int_svc\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "Exported"
+        }
+      ],
+      "title": "Prefixes",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "name"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Value #Filtered": false,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
+              "__name__ 4": true,
+              "export_filter 1": true,
+              "export_filter 2": true,
+              "export_filter 3": true,
+              "export_filter 4": true,
+              "import_filter 1": true,
+              "import_filter 2": true,
+              "import_filter 3": true,
+              "import_filter 4": true,
+              "instance 1": true,
+              "instance 2": true,
+              "instance 3": true,
+              "instance 4": true,
+              "ip_version 1": true,
+              "ip_version 2": true,
+              "ip_version 3": true,
+              "ip_version 4": true,
+              "job 1": true,
+              "job 2": true,
+              "job 3": true,
+              "job 4": true,
+              "proto 1": true,
+              "proto 2": true,
+              "proto 3": true,
+              "proto 4": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value #Exported": "Exported",
+              "Value #Filtered": "Filtered",
+              "Value #Imported": "Imported",
+              "Value #Preferred": "Preferred",
+              "name": "Peer",
+              "proto 2": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "c/m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "irate(bird_protocol_changes_update_import_receive_count{name=~\"(dn42|int_).+\",name!~\"int_svc.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}[$__rate_interval])*60+irate(bird_protocol_changes_withdraw_import_receive_count{name=~\"(dn42|int_).+\",name!~\"int_svc.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}[$__rate_interval])*60",
+          "interval": "",
+          "legendFormat": "{{ name }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Updates and withdraws received per non-service peer",
+      "type": "timeseries"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "c/m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": true,
+          "expr": "irate(bird_protocol_changes_update_export_accept_count{name=~\"(dn42|int_).+\",name!~\"int_svc.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}[$__rate_interval])*60+irate(bird_protocol_changes_withdraw_export_accept_count{name=~\"(dn42|int_).+\",name!~\"int_svc.*\",proto=\"BGP\",instance=\"$instance\",ip_version=\"$ip_version\"}[$__rate_interval])*60",
+          "interval": "",
+          "legendFormat": "{{ name }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Updates and withdraws sent per non-service peer",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 35,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "definition": "up{job=\"bird\"}",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "up{job=\"bird\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/.*instance=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 5,
+        "type": "query",
+        "datasource": "${DS_PROMETHEUS}"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "4",
+          "value": "4"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "ip_version",
+        "options": [
+          {
+            "selected": true,
+            "text": "4",
+            "value": "4"
+          },
+          {
+            "selected": false,
+            "text": "6",
+            "value": "6"
+          }
+        ],
+        "query": "4,6",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "BGP per-host details",
+  "uid": "8wliBbJ7k",
+  "version": 3,
+  "weekStart": ""
+}

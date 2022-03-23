@@ -1,0 +1,35 @@
+---
+
+# This playbook installs HTTP ingresses, which serve static sites and
+# reverse-proxy web applications.
+
+- name: install dn42 ingress
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: backbones
+  roles:
+  - ingress
+  vars:
+    ingress_name: dn42
+    ingress_tls_issuer: internal
+    ingress_proxy_domains:
+    - name: grafana.sesquialtera.dn42
+      backend: grafana
+    ingress_static_domains:
+    - name: sesquialtera.dn42
+  tags: ingress-dn42
+
+- name: install public ingress
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: us-lga-bb-1.sesquialtera.dn42
+  roles:
+  - ingress
+  vars:
+    ingress_name: public
+    ingress_static_domains:
+    - name: matthew.ingwersen.org
+    - name: dn42.sesquialtera.net
+  tags: ingress-public
