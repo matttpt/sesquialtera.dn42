@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.3"
+      "version": "8.4.4"
     },
     {
       "type": "datasource",
@@ -121,9 +121,13 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "exemplar": false,
           "expr": "count(up{job=\"node\"})",
           "instant": true,
@@ -132,6 +136,10 @@
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "exemplar": false,
           "expr": "sum(up{job=\"node\"})",
           "hide": false,
@@ -190,7 +198,7 @@
         "text": {},
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
           "datasource": {
@@ -268,7 +276,7 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
           "datasource": {
@@ -354,11 +362,16 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
-          "exemplar": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "exemplar": false,
           "expr": "increase(node_network_receive_bytes_total{device=\"eth0\"}[$__range]) + increase(node_network_transmit_bytes_total{device=\"eth0\"}[$__range])",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{ instance }}",
           "refId": "A"
@@ -409,15 +422,16 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "sum by (instance) (increase(node_network_receive_bytes_total{device=~\"dn42-.*\"}[$__range]) + increase(node_network_transmit_bytes_total{device=~\"dn42-.*\"}[$__range]))",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{ instance }}",
           "refId": "A"
@@ -856,9 +870,13 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "exemplar": false,
           "expr": "sum by (instance) (bird_protocol_prefix_preferred_count{proto=\"BGP\"})",
           "instant": true,
@@ -1091,9 +1109,13 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.4.4",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "exemplar": false,
           "expr": "sum by (instance) (bird_protocol_prefix_preferred_count{name=~\"dn42_roa[46]\",proto=\"Static\"})",
           "instant": true,
@@ -1121,6 +1143,6 @@
   "timezone": "",
   "title": "Overview",
   "uid": "FhiGix17k",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
