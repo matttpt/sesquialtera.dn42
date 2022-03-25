@@ -85,7 +85,7 @@ protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }}
 {% if hostvars[host].bgp_peer_with_as4200000001|default(false) %}
 protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
     neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
-    multihop 1;
+    multihop;
 }
 {% endif %}
 {% endfor %}
@@ -98,7 +98,7 @@ protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }}
 {% if hostvars[host].bgp_as == 4200000001 %}
 protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
     neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
-    multihop 1;
+    multihop;
 }
 {% endif %}
 {% endfor %}
