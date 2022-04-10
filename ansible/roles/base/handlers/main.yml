@@ -9,3 +9,7 @@
   service:
     name: nftables
     state: reloaded
+
+- name: update ca certificates
+  command:
+    cmd: update-ca-certificates

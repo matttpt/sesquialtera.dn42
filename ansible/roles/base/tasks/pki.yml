@@ -1,0 +1,10 @@
+---
+
+- name: install dn42 root ca certificate
+  copy:
+    src: dn42-root-ca.crt
+    dest: /usr/local/share/ca-certificates/dn42-root-ca.crt
+    owner: root
+    group: root
+    mode: '0644'
+  notify: update ca certificates

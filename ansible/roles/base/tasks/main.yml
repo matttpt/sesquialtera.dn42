@@ -44,6 +44,8 @@
   tags: firewall
 - import_tasks: mail.yml
 - import_tasks: ssh.yml
+- import_tasks: pki.yml
+  tags: pki
 - import_tasks: prometheus.yml
 
 - name: install motd
