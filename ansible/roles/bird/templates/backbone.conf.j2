@@ -18,7 +18,10 @@ filter to_backbone {
 }
 
 filter to_access {
-    if (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ]) || (is_dn42_default() && source = RTS_STATIC) then {
+    if (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
+        || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ])
+    then
+    {
         if from !~ {{ internal_net_v6 }} then {
             # Same deal as above.
             bgp_next_hop = {{ internal_ipv6 }};
