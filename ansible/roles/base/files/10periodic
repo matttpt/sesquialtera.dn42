@@ -1,0 +1,4 @@
+# Each day, update package lists and download (but do not install) any
+# upgradeable packages.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";

@@ -40,6 +40,14 @@
   command: /bin/hostname -F /etc/hostname
   when: hostname.changed
 
+- name: configure apt periodic tasks
+  copy:
+    src: 10periodic
+    dest: /etc/apt/apt.conf.d/10periodic
+    owner: root
+    group: root
+    mode: '0644'
+
 - import_tasks: firewall.yml
   tags: firewall
 - import_tasks: mail.yml
