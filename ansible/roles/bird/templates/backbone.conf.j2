@@ -35,6 +35,9 @@ filter to_access {
 filter from_exterior {
     if is_internal() then reject;
     if !is_dn42() then reject;
+    if bgp_path.len > 10 then {
+        reject;
+    }
     if net ~ 0.0.0.0/0 && roa_check(roa_v4, net, bgp_path.last) != ROA_VALID then {
         reject "ROA check failed for ", net, " AS ", bgp_path.last;
     }
