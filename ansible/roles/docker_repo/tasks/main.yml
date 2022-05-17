@@ -1,0 +1,19 @@
+---
+
+- name: install gpg
+  apt:
+    pkg: gpg
+    state: present
+    install_recommends: no
+
+- name: fetch docker apt key
+  shell:
+    cmd: wget -O - https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    creates: /usr/share/keyrings/docker-archive-keyring.gpg
+    warn: no
+
+- name: add docker apt repository
+  apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable
+    state: present
+    update_cache: yes
