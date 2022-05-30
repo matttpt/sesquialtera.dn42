@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.3"
+      "version": "8.5.3"
     },
     {
       "type": "datasource",
@@ -46,7 +46,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -65,11 +68,15 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1647466507178,
+  "iteration": 1653938702510,
   "links": [],
   "liveNow": false,
   "panels": [
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -113,7 +120,7 @@
         },
         "textMode": "value_and_name"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "exemplar": false,
@@ -121,7 +128,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "DN42 peers",
-          "refId": "A"
+          "refId": "A",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -130,7 +138,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "Internal peers",
-          "refId": "B"
+          "refId": "B",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -139,7 +148,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "Internal service peers",
-          "refId": "C"
+          "refId": "C",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -148,13 +158,18 @@
           "instant": true,
           "interval": "",
           "legendFormat": "Preferred  prefixes",
-          "refId": "D"
+          "refId": "D",
+          "datasource": "${DS_PROMETHEUS}"
         }
       ],
       "title": "BGP statistics",
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -165,7 +180,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
+            "fillOpacity": 50,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -173,22 +188,26 @@
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 0,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
             }
           },
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -229,10 +248,13 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "exemplar": true,
+          "editorMode": "code",
+          "exemplar": false,
           "expr": "bird_protocol_prefix_preferred_count{proto=\"BGP\",name=~\"(dn42|int_).+\",name!~\"int_svc.*\",instance=\"$instance\",ip_version=\"$ip_version\"}",
+          "instant": false,
           "interval": "",
           "legendFormat": "{{ name }}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -240,6 +262,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -248,7 +274,8 @@
           },
           "custom": {
             "align": "auto",
-            "displayMode": "auto"
+            "displayMode": "auto",
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -287,7 +314,7 @@
           }
         ]
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "8.5.3",
       "targets": [
         {
           "exemplar": false,
@@ -297,7 +324,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "",
-          "refId": "Imported"
+          "refId": "Imported",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -307,7 +335,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "",
-          "refId": "Filtered"
+          "refId": "Filtered",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -317,7 +346,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "",
-          "refId": "Preferred"
+          "refId": "Preferred",
+          "datasource": "${DS_PROMETHEUS}"
         },
         {
           "exemplar": false,
@@ -327,7 +357,8 @@
           "instant": true,
           "interval": "",
           "legendFormat": "",
-          "refId": "Exported"
+          "refId": "Exported",
+          "datasource": "${DS_PROMETHEUS}"
         }
       ],
       "title": "Prefixes",
@@ -391,6 +422,10 @@
       "type": "table"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -474,6 +509,10 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -562,13 +601,17 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 35,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
         "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
         "definition": "up{job=\"bird\"}",
         "hide": 0,
         "includeAll": false,
@@ -583,8 +626,7 @@
         "regex": "/.*instance=\"([^\"]*).*/",
         "skipUrlSync": false,
         "sort": 5,
-        "type": "query",
-        "datasource": "${DS_PROMETHEUS}"
+        "type": "query"
       },
       {
         "current": {
@@ -623,6 +665,6 @@
   "timezone": "",
   "title": "BGP per-host details",
   "uid": "8wliBbJ7k",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
