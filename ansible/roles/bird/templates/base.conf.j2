@@ -46,8 +46,8 @@ protocol direct endpoints {
     };
     interface {% set comma = joiner() %}{% for if in endpoint_ifs %}{{ comma() }}"{{ if }}"{% endfor %};
 }
-{% endif %}
 
+{% endif %}
 template bgp bgp_base {
     local as {{ bgp_as }};
     confederation {{ bgp_confed }};
@@ -77,33 +77,22 @@ protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }}
 {% endif %}
 {% endfor %}
 
-{% if bgp_as == 4200000001 %}
-# The following are BGP peers outside AS4200000001 (the sub-AS for
-# independent VPSes) that nevertheless peer with all members of
-# AS4200000001.
-{% for host in groups.all %}
-{% if hostvars[host].bgp_peer_with_as4200000001|default(false) %}
+{% if inventory_hostname in groups.wg_mesh %}
+# This host is in the Wireguard mesh. The following are BGP peers that
+# are in a different sub-AS but which are also in the mesh.
+{% for host in groups.wg_mesh %}
+{% if host != inventory_hostname
+      and host not in wg_mesh_exclude|default([])
+      and inventory_hostname not in hostvars[host].wg_mesh_exclude|default([])
+      and hostvars[host].bgp_as != bgp_as %}
 protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
     neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
     multihop;
 }
 {% endif %}
 {% endfor %}
-{% endif %}
 
-{% if bgp_peer_with_as4200000001|default(false) and bgp_as != 4200000001 %}
-# The following are BGP peers in the sub-AS for independent VPSes,
-# AS4200000001.
-{% for host in groups.all %}
-{% if hostvars[host].bgp_as == 4200000001 %}
-protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
-    neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
-    multihop;
-}
 {% endif %}
-{% endfor %}
-{% endif %}
-
 # The following are manually configured BGP peers.
 {% for peer in bgp_manual_peers|default([]) %}
 protocol bgp {{ peer.name }} from {{ peer.template }} {
