@@ -8,7 +8,7 @@ docker_net_v6: fda0:281f:5817:1::/64
 
 loopback_if: loopback-addrs
 public_ifs: [eth0]
-dn42_ifs: [dn42-lutoma]
+dn42_ifs: [dn42-kioubit, dn42-lutoma, dn42-tech9]
 manual_access_ifs: [dbr-general]
 endpoint_ifs: [dbr-general]
 
@@ -17,6 +17,15 @@ wg_mesh_address: 'fe80::1'
 wg_mesh_port: 30001
 wg_mesh_endpoint_address: us-lga-1.sesquialtera.net
 wg_manual_ifs:
+- name: dn42-kioubit
+  address_v4: '{{ internal_ipv4 }}/32'
+  pointopoint_v4: 172.20.53.98
+  address_v6: fe80::703/64
+  peers:
+  - public_key: 6Cylr9h1xFduAO+5nyXhFI1XJ0+Sw9jCpCDvcqErF1s=
+    allowed_ips: 0.0.0.0/0,::/0
+    endpoint_address: us2.g-load.eu
+    endpoint_port: 20703
 - name: dn42-lutoma
   address_v4: '{{ internal_ipv4 }}/32'
   pointopoint_v4: 172.22.119.10
@@ -27,14 +36,34 @@ wg_manual_ifs:
     allowed_ips: 0.0.0.0/0,::/0
     endpoint_address: us-nyc.dn42.lutoma.org
     endpoint_port: 42433
+- name: dn42-tech9
+  address_v4: '{{ internal_ipv4 }}/32'
+  pointopoint_v4: 172.20.16.139
+  address_v6: fe80::100/64
+  port: 21588
+  peers:
+  - public_key: 0kb8ffMcbx8oXZ3Ii5khOuCzmRqM2Cy0IslmrWtRGSk=
+    allowed_ips: 0.0.0.0/0,::/0
+    endpoint_address: us-chi01.dn42.tech9.io
+    endpoint_port: 57047
 
 bgp_as: 4200000001
 bgp_manual_peers:
+- name: dn42_kioubit_nyc
+  template: exterior
+  neighbor: fe80::ade0
+  interface: dn42-kioubit
+  as: 4242423914
 - name: dn42_lutoma_nyc
   template: exterior
   neighbor: fe80::acab
   interface: dn42-lutoma
   as: 64719
+- name: dn42_tech9_chi
+  template: exterior
+  neighbor: fe80::1588
+  interface: dn42-tech9
+  as: 4242421588
 - name: int_svc
   template: service_advertisement
   neighbor: range {{ docker_net_v6 }}
