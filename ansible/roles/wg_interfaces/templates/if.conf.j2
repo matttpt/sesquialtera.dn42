@@ -1,8 +1,8 @@
 {% if item.port is defined %}
 [Interface]
 ListenPort = {{ item.port }}
-{% endif %}
 
+{% endif %}
 {% for peer in item.peers %}
 [Peer]
 {% if peer.host is defined %}

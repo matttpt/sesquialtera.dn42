@@ -84,6 +84,8 @@ protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }}
 {% if host != inventory_hostname
       and host not in wg_mesh_exclude|default([])
       and inventory_hostname not in hostvars[host].wg_mesh_exclude|default([])
+      and (wg_mesh_endpoint_address is defined
+           or hostvars[item].wg_mesh_endpoint_address is defined)
       and hostvars[host].bgp_as != bgp_as %}
 protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
     neighbor {{ hostvars[host].internal_ipv6 }} as {{ hostvars[host].bgp_as }};
