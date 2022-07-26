@@ -21,7 +21,7 @@
 - name: create and start unbound container
   docker_container:
     name: rdns
-    image: mvance/unbound:1.16.0
+    image: mvance/unbound:1.16.1
     restart_policy: unless-stopped
     volumes:
     - '/usr/local/etc/unbound:/opt/unbound/etc/unbound'
