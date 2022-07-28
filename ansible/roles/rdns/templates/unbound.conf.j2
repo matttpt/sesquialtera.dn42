@@ -6,9 +6,11 @@ server:
   chroot: /opt/unbound/etc/unbound
   directory: /opt/unbound/etc/unbound
   do-daemonize: no
-  domain-insecure: dn42
-  domain-insecure: hack
-  domain-insecure: neo
+  domain-insecure: hack.
+  domain-insecure: neo.
+{% for zone in adns_zones %}
+  domain-insecure: {{ zone.name }}.
+{% endfor %}
   interface-automatic: yes
   local-zone: 10.in-addr.arpa. nodefault
   local-zone: 20.172.in-addr.arpa. nodefault
@@ -18,6 +20,18 @@ server:
   local-zone: 31.172.in-addr.arpa. nodefault
   local-zone: 168.192.in-addr.arpa. nodefault
   local-zone: d.f.ip6.arpa. nodefault
+  trust-anchor: 'dn42. IN DS 3096 10 2 B7C687A99BEE60E172EA439BD2D3087B1D970916575DB9C1CB591B7EE15D8CB1'
+  trust-anchor: 'dn42. IN DS 64441 10 2 6DADDA00F5986BD26FE4F162669742CF7EBA07D212B525ACAC9840EE06CB2799'
+  trust-anchor: 'd.f.ip6.arpa. IN DS 3096 10 2 23FB364C82E6ED1C30B18C635F58DCA58BBEB2E069BBD9D90AB9A90F66B948D2'
+  trust-anchor: 'd.f.ip6.arpa. IN DS 64441 10 2 9057500A3B6E09BF45A60ED8891F2E649C6812D5D149C45A3C560FA0A6195C49'
+  trust-anchor: '20.172.in-addr.arpa. IN DS 3096 10 2 6ADF85EFDDF223C8747F1816B12B62FEEA0B9B1BDB65E7C809202F890A33740D'
+  trust-anchor: '20.172.in-addr.arpa. IN DS 64441 10 2 616C149633E93D963B0E8F738719630EA0A09F4AABE211B1FBB8FC9F51304027'
+  trust-anchor: '21.172.in-addr.arpa. IN DS 3096 10 2 506FD7F34AAAD4DF1B6CFA56FE8C00E157B1C32551C981DEF0C5FD8F65AB14AC'
+  trust-anchor: '21.172.in-addr.arpa. IN DS 64441 10 2 4CC085716BA83F18DF1A7FB9F9479D10327E3D30E222C7A197109C7560AE0368'
+  trust-anchor: '22.172.in-addr.arpa. IN DS 3096 10 2 5437AB49F1CD947D41C585C2CC9C357323013391B0E5F94784F99175142C3260'
+  trust-anchor: '22.172.in-addr.arpa. IN DS 64441 10 2 383A8C2714D3DA76F58CEE4C54566566B336B2DFA219B965F7CB706D71C54356'
+  trust-anchor: '23.172.in-addr.arpa. IN DS 3096 10 2 631B00BA00CF80A8300B356BCCA2FDE4C844F6FF707A2D98B4518C72E0643467'
+  trust-anchor: '23.172.in-addr.arpa. IN DS 64441 10 2 E91C0281E705317968C76689E4F36BF2207C90BDFAAD071693BB9A999D15778F'
   username: '_unbound'
 
 ########################################################################
