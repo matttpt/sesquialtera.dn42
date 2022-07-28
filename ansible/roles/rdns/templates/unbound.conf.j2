@@ -7,7 +7,6 @@ server:
   directory: /opt/unbound/etc/unbound
   do-daemonize: no
   domain-insecure: hack.
-  domain-insecure: neo.
 {% for zone in adns_zones %}
   domain-insecure: {{ zone.name }}.
 {% endfor %}
@@ -32,6 +31,8 @@ server:
   trust-anchor: '22.172.in-addr.arpa. IN DS 64441 10 2 383A8C2714D3DA76F58CEE4C54566566B336B2DFA219B965F7CB706D71C54356'
   trust-anchor: '23.172.in-addr.arpa. IN DS 3096 10 2 631B00BA00CF80A8300B356BCCA2FDE4C844F6FF707A2D98B4518C72E0643467'
   trust-anchor: '23.172.in-addr.arpa. IN DS 64441 10 2 E91C0281E705317968C76689E4F36BF2207C90BDFAAD071693BB9A999D15778F'
+  trust-anchor: 'neo. IN DS 56336 13 2 317F7CC14D2F74ABF560CFCE6F89F5187872573BA5A7AF9A9B14CF47E51489E5'
+  trust-anchor: '127.10.in-addr.arpa. IN DS 22312 13 2 16859DEDDC7966541B4507D4612B00EA6FB95B2773E51D4BCC201E16F6178B0F'
   username: '_unbound'
 
 ########################################################################
