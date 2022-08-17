@@ -17,7 +17,7 @@ protocol ospf v3 ospf6 {
    and (host not in wg_mesh_exclude|default([]))
    and (inventory_hostname not in hostvars[host].wg_mesh_exclude|default([]))
    and (wg_mesh_endpoint_address is defined
-        or hostvars[item].wg_mesh_endpoint_address is defined)
+        or hostvars[host].wg_mesh_endpoint_address is defined)
 %}
         interface "int-{{ hostvars[host].inventory_hostname_short }}" {
             type ptmp;
