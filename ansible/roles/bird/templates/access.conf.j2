@@ -1,6 +1,5 @@
 template bgp interior from bgp_base {
     local {{ internal_ipv6 }};
-    confederation member yes;
 }
 
 template bgp backbone from interior {
@@ -14,19 +13,9 @@ template bgp backbone from interior {
     };
 }
 
-template bgp access from interior {
-    ipv4 {
-        import where is_internal();
-        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
-    };
-    ipv6 {
-        import where is_internal();
-        export where is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ];
-    };
-}
-
 template bgp service_advertisement from interior {
     dynamic name "int_svc_dyn";
+    rr client;
     ipv4 {
         import filter {
             if is_internal() then {

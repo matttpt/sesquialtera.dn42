@@ -19,9 +19,8 @@ ospf_manual_ifs:
 
 rip_ifs: [eth0]
 
-bgp_as: 4200000002
 bgp_manual_peers:
 - name: int_svc
   template: service_advertisement
   neighbor: range {{ docker_net_v6 }}
-  as: 4200000000
+  as: '{{ bgp_as }}'

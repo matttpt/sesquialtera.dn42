@@ -49,8 +49,7 @@
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 0
     env:
-      SA_LOCAL_AS: '4200000000'
-      SA_CONFED: '"{{ bgp_confed }}"'
+      SA_LOCAL_AS: '"{{ bgp_as }}"'
       SA_NEIGHBOR: '{{ internal_ipv6 }}'
       SA_PEER_AS: '"{{ bgp_as }}"'
       SA_IPV4: '{{ anycast_ips["ingress-" + ingress_name].ipv4 }}'

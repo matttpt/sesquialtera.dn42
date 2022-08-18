@@ -67,7 +67,6 @@ filter to_exterior {
 
 template bgp interior from bgp_base {
     local {{ internal_ipv6 }};
-    confederation member yes;
 }
 
 template bgp backbone from interior {
@@ -82,6 +81,10 @@ template bgp backbone from interior {
 }
 
 template bgp access from interior {
+    rr client;
+{% if bgp_site_rr_cluster_id is defined %}
+    rr cluster id {{ bgp_site_rr_cluster_id }};
+{% endif %}
     ipv4 {
         import where is_internal();
         export filter to_access;
@@ -94,6 +97,10 @@ template bgp access from interior {
 
 template bgp service_advertisement from interior {
     dynamic name "int_svc_dyn";
+    rr client;
+{% if bgp_site_rr_cluster_id is defined %}
+    rr cluster id {{ bgp_site_rr_cluster_id }};
+{% endif %}
     ipv4 {
         import filter {
             if is_internal() then {

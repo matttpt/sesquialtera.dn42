@@ -47,7 +47,6 @@ wg_manual_ifs:
     endpoint_address: us-chi01.dn42.tech9.io
     endpoint_port: 57047
 
-bgp_as: 4200000001
 bgp_manual_peers:
 - name: dn42_kioubit_nyc
   template: exterior
@@ -67,7 +66,7 @@ bgp_manual_peers:
 - name: int_svc
   template: service_advertisement
   neighbor: range {{ docker_net_v6 }}
-  as: 4200000000
+  as: '{{ bgp_as }}'
 
 public_port_forwards:
 - ports: [80, 443]
