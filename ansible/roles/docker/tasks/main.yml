@@ -26,6 +26,12 @@
   notify: restart docker
   tags: conf
 
+- name: start docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
 - name: create general docker network
   docker_network:
     name: general
