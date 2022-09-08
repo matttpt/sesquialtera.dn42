@@ -60,22 +60,10 @@ unicast_ips:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.53
       ipv6: fda0:281f:5817:1::53
-    us-oxc-bb-1.sesquialtera.dn42:
-      ipv4: 192.168.16.53
-      ipv6: fda0:281f:5817:10::53
-    us-oxc-ac-1.sesquialtera.dn42:
-      ipv4: 192.168.18.53
-      ipv6: fda0:281f:5817:12::53
   rdns:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.54
       ipv6: fda0:281f:5817:1::54
-    us-oxc-bb-1.sesquialtera.dn42:
-      ipv4: 192.168.16.54
-      ipv6: fda0:281f:5817:10::54
-    us-oxc-ac-1.sesquialtera.dn42:
-      ipv4: 192.168.18.54
-      ipv6: fda0:281f:5817:12::54
   prometheus:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.90
@@ -88,9 +76,6 @@ unicast_ips:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.42
       ipv6: fda0:281f:5817:1::42
-    us-oxc-bb-1.sesquialtera.dn42:
-      ipv4: 192.168.16.42
-      ipv6: fda0:281f:5817:10::42
   ingress-public:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.80

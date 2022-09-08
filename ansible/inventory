@@ -4,14 +4,10 @@
 
 [north_america_east:children]
 lga
-oxc
 
 [lga]
 us-lga-bb-1.sesquialtera.dn42
 
-[oxc]
-us-oxc-bb-1.sesquialtera.dn42
-us-oxc-ac-1.sesquialtera.dn42
 
 ########################################################################
 # ALL HOSTS BY ROUTING ROLE                                            #
@@ -19,10 +15,9 @@ us-oxc-ac-1.sesquialtera.dn42
 
 [backbones]
 us-lga-bb-1.sesquialtera.dn42
-us-oxc-bb-1.sesquialtera.dn42
 
 [accesses]
-us-oxc-ac-1.sesquialtera.dn42
+# None right now.
 
 
 ########################################################################
@@ -34,7 +29,6 @@ wg_mesh
 
 [wg_mesh]
 us-lga-bb-1.sesquialtera.dn42
-us-oxc-bb-1.sesquialtera.dn42
 
 
 ########################################################################
@@ -43,8 +37,6 @@ us-oxc-bb-1.sesquialtera.dn42
 
 [dockers]
 us-lga-bb-1.sesquialtera.dn42
-us-oxc-bb-1.sesquialtera.dn42
-us-oxc-ac-1.sesquialtera.dn42
 
 
 ########################################################################
@@ -57,10 +49,9 @@ adns_b
 
 [adns_a]
 us-lga-bb-1.sesquialtera.dn42
-us-oxc-bb-1.sesquialtera.dn42
 
 [adns_b]
-us-oxc-ac-1.sesquialtera.dn42
+# None right now.
 
 [rdns:children]
 rdns_a
@@ -68,7 +59,6 @@ rdns_b
 
 [rdns_a]
 us-lga-bb-1.sesquialtera.dn42
-us-oxc-bb-1.sesquialtera.dn42
 
 [rdns_b]
-us-oxc-ac-1.sesquialtera.dn42
+# None right now.
