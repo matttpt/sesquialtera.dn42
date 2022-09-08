@@ -9,7 +9,7 @@
   gather_facts: no
   remote_user: '{{ admin_user }}'
   become: yes
-  hosts: us-oxc-ac-1.sesquialtera.dn42
+  hosts: us-lga-bb-1.sesquialtera.dn42
   roles:
   - prometheus
   tags: prometheus
@@ -18,7 +18,7 @@
   gather_facts: no
   remote_user: '{{ admin_user }}'
   become: yes
-  hosts: us-oxc-ac-1.sesquialtera.dn42
+  hosts: us-lga-bb-1.sesquialtera.dn42
   roles:
   - grafana
   tags: grafana
