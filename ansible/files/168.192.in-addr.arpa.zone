@@ -1,6 +1,6 @@
 $ORIGIN 168.192.in-addr.arpa.
 
-@       86400 IN SOA    ns1.sesquialtera.dn42. matttpt.gmail.com. 2022032100 900 300 864000 900
+@       86400 IN SOA    ns1.sesquialtera.dn42. matttpt.gmail.com. 2022090700 900 300 864000 900
         86400 IN NS     ns1.sesquialtera.dn42.
         86400 IN NS     ns2.sesquialtera.dn42.
 
@@ -8,7 +8,7 @@ $ORIGIN 168.192.in-addr.arpa.
 1.1     86400 IN PTR    us-lga-bb-1.sesquialtera.dn42.
 32.0    86400 IN PTR    us-oxc-bb-1.sesquialtera.dn42.
 1.16    86400 IN PTR    us-oxc-bb-1.sesquialtera.dn42.
-1.255   86400 IN PTR    us-oxc-bb-1.sesquialtera.dn42.
+1.255   86400 IN PTR    us-lga-bb-1.sesquialtera.dn42.
 33.0    86400 IN PTR    us-oxc-ac-1.sesquialtera.dn42.
 1.18    86400 IN PTR    us-oxc-ac-1.sesquialtera.dn42.
 

@@ -10,21 +10,12 @@ loopback_if: loopback-addrs
 manual_backbone_ifs: [int-oxc]
 manual_access_ifs: [dbr-general]
 home_ifs: [eth0]
-user_ifs: [int-users]
-endpoint_ifs: [eth0, dbr-general, int-users]
+endpoint_ifs: [eth0, dbr-general]
 
 wg_public_key: '2ulkQqfsk7v3i1GwZSZQgZTADy27IT4azyLSJZ3LkRk='
 wg_mesh_address: 'fe80::10'
 wg_mesh_port: 30016
 wg_mesh_endpoint_address: us-oxc-1.sesquialtera.net
-wg_manual_ifs:
-- name: int-users
-  address_v4: 192.168.255.1/24
-  address_v6: fda0:281f:5817:ffff::1/64
-  port: 51820
-  peers:
-  - public_key: 'nFz5st0tmBlnXLMPZcRZvsB//2YLX5l7o4CUiq/8ZiQ='
-    allowed_ips: 192.168.255.2/32, fda0:281f:5817:ffff::2/128
 
 ospf_manual_ifs:
 - name: int-oxc
