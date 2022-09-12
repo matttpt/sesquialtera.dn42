@@ -1,37 +1,6 @@
 roa4 table roa_v4;
 roa6 table roa_v6;
 
-filter to_backbone {
-    if (is_internal() && source = RTS_DEVICE) || source = RTS_BGP then {
-        if from !~ {{ internal_net_v6 }} then {
-            # We set next-hop to self when the route is learned from
-            # outside our network. We do it this way because BIRD's
-            # "next hop self ebgp" will set next-hop to self even for
-            # intra-confederation eBGP neighbors, which we don't want
-            # (since we are running a single IGP).
-            bgp_next_hop = {{ internal_ipv6 }};
-        }
-        accept;
-    } else {
-        reject;
-    }
-}
-
-filter to_access {
-    if (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
-        || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ])
-    then
-    {
-        if from !~ {{ internal_net_v6 }} then {
-            # Same deal as above.
-            bgp_next_hop = {{ internal_ipv6 }};
-        }
-        accept;
-    } else {
-        reject;
-    }
-}
-
 filter from_exterior {
     if is_internal() then reject;
     if !is_dn42() then reject;
@@ -67,16 +36,22 @@ filter to_exterior {
 
 template bgp interior from bgp_base {
     local {{ internal_ipv6 }};
+    ipv4 {
+        next hop self ebgp;
+    };
+    ipv6 {
+        next hop self ebgp;
+    };
 }
 
 template bgp backbone from interior {
     ipv4 {
         import all;
-        export filter to_backbone;
+        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
     };
     ipv6 {
         import all;
-        export filter to_backbone;
+        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
     };
 }
 
@@ -87,11 +62,15 @@ template bgp access from interior {
 {% endif %}
     ipv4 {
         import where is_internal();
-        export filter to_access;
+        export where
+            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
+            || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
     };
     ipv6 {
         import where is_internal();
-        export filter to_access;
+        export where
+            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
+            || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
     };
 }
 
