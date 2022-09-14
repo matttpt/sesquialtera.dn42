@@ -14,7 +14,7 @@
           and host not in wg_mesh_exclude|default([])
           and inventory_hostname not in hostvars[host].wg_mesh_exclude|default([])
           and (wg_mesh_endpoint_address is defined
-               or hostvars[item].wg_mesh_endpoint_address is defined) %}
+               or hostvars[host].wg_mesh_endpoint_address is defined) %}
       {%- if hostvars[host].router_role == "backbone" %}
         {%- set computed_ifs.bb = computed_ifs.bb + ["int-" + hostvars[host].inventory_hostname_short] %}
       {%- elif hostvars[host].router_role == "access" %}
