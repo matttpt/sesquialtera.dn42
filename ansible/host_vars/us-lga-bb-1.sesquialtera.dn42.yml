@@ -8,7 +8,7 @@ docker_net_v6: fda0:281f:5817:1::/64
 
 loopback_if: loopback-addrs
 public_ifs: [eth0]
-dn42_ifs: [dn42-kioubit, dn42-lutoma, dn42-tech9]
+dn42_ifs: [dn42-highdef, dn42-kioubit, dn42-lutoma, dn42-tech9]
 manual_access_ifs: [dbr-general]
 user_ifs: [int-users]
 endpoint_ifs: [dbr-general, int-users]
@@ -18,6 +18,14 @@ wg_mesh_address: 'fe80::1'
 wg_mesh_port: 30001
 wg_mesh_endpoint_address: us-lga-1.sesquialtera.net
 wg_manual_ifs:
+- name: dn42-highdef
+  address_v6: fe80::703/64
+  port: 21080
+  peers:
+  - public_key: YrlNsVP9bbTqNuNyQ/MVFzulZKNW5vMaDMzHVFNXSSE=
+    allowed_ips: 0.0.0.0/0,::/0
+    endpoint_address: dn42-ca-ymq01.jlu5.com
+    endpoint_port: 20703
 - name: dn42-kioubit
   address_v4: '{{ internal_ipv4 }}/32'
   pointopoint_v4: 172.20.53.98
@@ -56,6 +64,11 @@ wg_manual_ifs:
     allowed_ips: 192.168.255.2/32, fda0:281f:5817:ffff::2/128
 
 bgp_manual_peers:
+- name: dn42_highdef_ymq
+  template: exterior
+  neighbor: fe80::123
+  interface: dn42-highdef
+  as: 4242421080
 - name: dn42_kioubit_nyc
   template: exterior
   neighbor: fe80::ade0
