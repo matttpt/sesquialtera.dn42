@@ -16,6 +16,7 @@ protocol kernel kernel4 {
             accept;
         };
     };
+    metric 512;  # This is high enough not to override kernel device routes.
 }
 
 protocol kernel kernel6 {
@@ -23,4 +24,5 @@ protocol kernel kernel6 {
         import none;
         export where source ~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ];
     };
+    metric 512;
 }
