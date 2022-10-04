@@ -1,2 +1,2 @@
-meta obrname "dbr-general" tcp dport http ip daddr {{ unicast_ips.grafana[inventory_hostname].ipv4 }} ip saddr { {{ unicast_ips['ingress-dn42'].values()|map(attribute="ipv4")|join(',') }} } accept
-meta obrname "dbr-general" tcp dport http ip6 daddr {{ unicast_ips.grafana[inventory_hostname].ipv6 }} ip6 saddr { {{ unicast_ips['ingress-dn42'].values()|map(attribute="ipv6")|join(',') }} } accept
+meta obrname "dbr-general" tcp dport http ip daddr {{ unicast_ips.grafana[inventory_hostname].ipv4 }} ip saddr $INTERNAL_NETS_V4 accept
+meta obrname "dbr-general" tcp dport http ip6 daddr {{ unicast_ips.grafana[inventory_hostname].ipv6 }} ip6 saddr $INTERNAL_NETS_V6 accept
