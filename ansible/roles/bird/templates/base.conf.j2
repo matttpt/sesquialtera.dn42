@@ -19,71 +19,40 @@ function is_dn42() {
         || net ~ fd00::/8;
 }
 
-function is_dn42_default() {
+function is_default() {
     return net = 172.20.0.0/14
         || net = 172.31.0.0/16
         || net = 10.0.0.0/8
-        || net = fd00::/8;
+        || net = fd00::/8
+        || net = {{ internal_net_v4 }}
+        || net = {{ private_net_v4 }}
+        || net = {{ internal_net_v6 }}
+        || net = 0.0.0.0/0
+        || net = ::/0;
 }
 
 protocol device {
 }
 
-protocol direct loopback4 {
-    ipv4 {
-        import where is_internal();
-    };
-    interface "{{ loopback_if }}";
-}
+include "kernel.conf";
+include "{{ router_scope }}.conf";
+{% if router_site_role is defined %}
+include "{{ router_site_role }}.conf";
+{% endif %}
 
-{% if endpoint_ifs|default([]) %}
-protocol direct endpoints {
+template bgp service_advertisement from bgp_base {
+    local as 4200000998;
+    neighbor as 4200000999;
+    dynamic name "int_svc_dyn";
     ipv4 {
         import where is_internal();
+        export none;
     };
     ipv6 {
         import where is_internal();
-    };
-    interface {% set comma = joiner() %}{% for if in endpoint_ifs %}{{ comma() }}"{{ if }}"{% endfor %};
-}
-
-{% endif %}
-template bgp bgp_base {
-    local as {{ bgp_as }};
-    hold time 90;
-    startup hold time 90;
-    ipv4 {
-        extended next hop;
+        export none;
     };
 }
-
-include "kernel.conf";
-include "ospf.conf";
-include "{{ router_role }}.conf";
-{% if rip_ifs is defined %}
-include "rip.conf";
-{% endif %}
-{% if radv_ifs is defined %}
-include "radv.conf";
-{% endif %}
-
-{% set peer_calc = namespace(auto_peers=[]) %}
-{% if router_role == "access" %}
-{% for host in groups[site_group] if hostvars[host].router_role == "backbone" %}
-{% set peer_calc.auto_peers = peer_calc.auto_peers + [host] %}
-{% endfor %}
-{% elif router_role == "backbone" %}
-{% for host in groups.all %}
-{% if host in groups.backbones or host in groups[site_group] %}
-{% set peer_calc.auto_peers = peer_calc.auto_peers + [host] %}
-{% endif %}
-{% endfor %}
-{% endif %}
-{% for host in peer_calc.auto_peers if host != inventory_hostname %}
-protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace('-', '_') }} from {{ hostvars[host].router_role }} {
-    neighbor {{ hostvars[host].internal_ipv6 }} as {{ bgp_as }};
-}
-{% endfor %}
 
 # The following are manually configured BGP peers.
 {% for peer in bgp_manual_peers|default([]) %}
@@ -91,7 +60,7 @@ protocol bgp {{ peer.name }} from {{ peer.template }} {
 {% if peer.local is defined %}
     local {{ peer.local }};
 {% endif %}
-    neighbor {{ peer.neighbor }} as {{ peer.as }};
+    neighbor {{ peer.neighbor }}{% if peer.as is defined %} as {{ peer.as }}{% endif %};
 {% if peer.interface is defined %}
     interface "{{ peer.interface }}";
 {% endif %}
@@ -117,4 +86,6 @@ protocol bgp {{ peer.name }} from {{ peer.template }} {
     };
 {% endif %}
 }
+{% else %}
+# (None are configured.)
 {% endfor %}

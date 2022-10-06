@@ -1,7 +1,7 @@
 ---
 
-# This playbook installs Wireguard on hosts and generates a new
-# public/private key pair if necessary. Newly generated public keys
+# This playbook installs Wireguard on backbone routers and generates a
+# new public/private key pair if necessary. Newly generated public keys
 # are printed at the end. These new public keys should then be copied to
 # the appropriate wg_public_key host variables.
 
@@ -9,6 +9,6 @@
   gather_facts: no
   remote_user: '{{ admin_user }}'
   become: yes
-  hosts: wireguards
+  hosts: backbones
   roles:
   - wg_base

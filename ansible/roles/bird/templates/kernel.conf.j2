@@ -5,18 +5,19 @@ protocol kernel kernel4 {
             if source !~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ] then reject;
 
             # IPv6 source selection will choose ULA addresses when
-            # the destination is a ULA address, so the internal
-            # loopback address is selected. However, with IPv4, the
-            # kernel may try to choose an external IPv4 address as the
-            # source when extended (IPv6) next-hops are in use. This
-            # instructs the kernel to prefer our internal IPv4 address
-            # as the source on any routes BIRD installs, which fixes the
+            # the destination is a ULA address, so an internal address
+            # will be selected. However, with IPv4, the kernel may try
+            # choose an external IPv4 address as the source when
+            # extended (IPv6) next-hops are in use. This instructs the
+            # kernel to prefer our primary internal IPv4 address as the
+            # source on any routes BIRD installs, which fixes the
             # problem.
             krt_prefsrc = {{ internal_ipv4 }};
             accept;
         };
     };
     metric 512;  # This is high enough not to override kernel device routes.
+    merge paths on;
 }
 
 protocol kernel kernel6 {
@@ -25,4 +26,5 @@ protocol kernel kernel6 {
         export where source ~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ];
     };
     metric 512;
+    merge paths on;
 }

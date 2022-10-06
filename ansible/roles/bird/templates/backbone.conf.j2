@@ -1,5 +1,198 @@
+########################################################################
+# LOCAL PROTOCOLS                                                      #
+########################################################################
+
+ipv4 table bgp4;
+ipv6 table bgp6;
+
+protocol direct advertised {
+    ipv4 {
+        import where is_internal();
+        table bgp4;
+    };
+    ipv6 {
+        import where is_internal();
+        table bgp6;
+    };
+{% set if_ns = namespace(ifs=[]) %}
+{% set if_ns.ifs = if_ns.ifs + [loopback_if] %}
+{% set if_ns.ifs = if_ns.ifs + advertised_ifs|default([]) %}
+    interface {% set comma = joiner() %}{% for if in if_ns.ifs %}{{ comma() }}"{{ if }}"{% endfor %};
+}
+
+protocol static defaults4 {
+    ipv4 {
+        preference 50;
+        table bgp4;
+    };
+    route {{ private_net_v4 }} unreachable;
+    route {{ internal_net_v4 }} unreachable;
+    route 172.20.0.0/14 unreachable;
+    route 172.31.0.0/16 unreachable;
+    route 10.0.0.0/8 unreachable;
+{% if router_originate_default_via_v4 is defined %}
+    route 0.0.0.0/0 via {{ router_originate_default_via_v4 }};
+{% endif %}
+}
+
+protocol static defaults6 {
+    ipv6 {
+        preference 50;
+        table bgp6;
+    };
+    route {{ internal_net_v6 }} unreachable;
+    route fd00::/8 unreachable;
+{% if router_originate_default_via_v6 is defined %}
+    route ::/0 via {{ router_originate_default_via_v6 }};
+{% endif %}
+}
+
+protocol pipe bgp4_to_master4 {
+    table master4;
+    peer table bgp4;
+    import where net != 0.0.0.0/0;
+    export none;
+}
+
+protocol pipe bgp6_to_master6 {
+    table master6;
+    peer table bgp6;
+    import where net != ::/0;
+    export none;
+}
+
+
+########################################################################
+# IGP                                                                  #
+########################################################################
+
+protocol ospf v3 ospf6 {
+    ipv6 {
+        import where is_internal();
+        export none;
+    };
+    area 0 {
+        interface "{{ loopback_if }}" {
+            stub;
+        };
+{% for host in groups.backbones
+       if host != inventory_hostname
+       and host not in wg_mesh_exclude|default([])
+       and inventory_hostname not in hostvars[host].wg_mesh_exclude|default([])
+       and host not in groups[site_group]
+       and (wg_mesh_endpoint_address is defined
+            or hostvars[host].wg_mesh_endpoint_address is defined) %}
+
+        interface "int-{{ hostvars[host].inventory_hostname_short }}" {
+            type ptmp;
+            neighbors {
+                {{ hostvars[host].wg_mesh_address }};
+            };
+            cost 1000;
+        };
+{% endfor %}
+    };
+}
+
+
+########################################################################
+# ROA                                                                  #
+########################################################################
+
 roa4 table roa_v4;
 roa6 table roa_v6;
+
+protocol static dn42_roa4 {
+    roa4 {
+        table roa_v4;
+    };
+    include "dn42_roa_bird2_4.conf";
+}
+
+protocol static dn42_roa6 {
+    roa6 {
+        table roa_v6;
+    };
+    include "dn42_roa_bird2_6.conf";
+}
+
+
+########################################################################
+# BASIC BGP CONFIGURATION                                              #
+########################################################################
+
+template bgp bgp_base {
+    hold time 90;
+    startup hold time 90;
+    ipv4 {
+        extended next hop;
+        igp table master4;
+        next hop self ebgp;
+        table bgp4;
+    };
+    ipv6 {
+        igp table master6;
+        next hop self ebgp;
+        table bgp6;
+    };
+}
+
+
+########################################################################
+# IBGP WITH OTHER BACKBONE ROUTERS                                     #
+########################################################################
+
+filter to_backbone {
+    if (is_internal() && source = RTS_DEVICE) || source = RTS_BGP then {
+        bgp_path.delete([4200000000..4200000999]);
+        accept;
+    } else reject;
+}
+
+template bgp backbone from bgp_base {
+    local {{ internal_ipv6 }} as {{ internal_as }};
+    ipv4 {
+        import all;
+        export filter to_backbone;
+    };
+    ipv6 {
+        import all;
+        export filter to_backbone;
+    };
+}
+{% for host in groups.backbones
+       if host != inventory_hostname
+       and site_group != hostvars[host].site_group %}
+
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }} from backbone {
+    neighbor {{ hostvars[host].internal_ipv6 }} as {{ internal_as }};
+}
+{% endfor %}
+
+
+########################################################################
+# SITE NETWORK                                                         #
+########################################################################
+
+template bgp site from bgp_base {
+    ipv4 {
+        import where is_internal() && !is_default();
+        export where
+            (is_internal() && source = RTS_DEVICE)
+            || (is_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
+    };
+    ipv6 {
+        import where is_internal() && !is_default();
+        export where
+            (is_internal() && source = RTS_DEVICE)
+            || (is_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
+    };
+}
+
+
+########################################################################
+# EBGP WITH DN42 PEERS                                                 #
+########################################################################
 
 filter from_exterior {
     if is_internal() then reject;
@@ -31,80 +224,12 @@ filter to_exterior {
         bgp_community.add((64511, {{ dn42_region }}));
 {% endif %}
     } else if source != RTS_BGP then reject;
+    bgp_path.delete([4200000000..420000999]);
     accept;
 }
 
-template bgp interior from bgp_base {
-    local {{ internal_ipv6 }};
-    ipv4 {
-        next hop self ebgp;
-    };
-    ipv6 {
-        next hop self ebgp;
-    };
-}
-
-template bgp backbone from interior {
-    ipv4 {
-        import all;
-        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
-    };
-    ipv6 {
-        import all;
-        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
-    };
-}
-
-template bgp access from interior {
-    rr client;
-{% if bgp_site_rr_cluster_id is defined %}
-    rr cluster id {{ bgp_site_rr_cluster_id }};
-{% endif %}
-    ipv4 {
-        import where is_internal();
-        export where
-            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
-            || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
-    };
-    ipv6 {
-        import where is_internal();
-        export where
-            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
-            || (is_dn42_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
-    };
-}
-
-template bgp service_advertisement from interior {
-    dynamic name "int_svc_dyn";
-    rr client;
-{% if bgp_site_rr_cluster_id is defined %}
-    rr cluster id {{ bgp_site_rr_cluster_id }};
-{% endif %}
-    ipv4 {
-        import filter {
-            if is_internal() then {
-                # We must set the next-hop to self since the next-hop
-                # IP we are provided is probably that of a container
-                # and is not in the IGP.
-                bgp_next_hop = {{ internal_ipv6 }};
-                accept;
-            } else reject;
-        };
-        export none;
-    };
-    ipv6 {
-        import filter {
-            if is_internal() then {
-                # See above.
-                bgp_next_hop = {{ internal_ipv6 }};
-                accept;
-            } else reject;
-        };
-        export none;
-    };
-}
-
 template bgp exterior from bgp_base {
+    local as {{ internal_as }};
     ipv4 {
         receive limit 2000 action block;
         import filter from_exterior;
@@ -130,37 +255,4 @@ template bgp exterior from bgp_base {
         import table on;
         import keep filtered;
     };
-}
-
-protocol static defaults4 {
-    ipv4 {
-        preference 50;
-    };
-    route {{ private_net_v4 }} unreachable;
-    route {{ internal_net_v4 }} unreachable;
-    route 172.20.0.0/14 unreachable;
-    route 172.31.0.0/16 unreachable;
-    route 10.0.0.0/8 unreachable;
-}
-
-protocol static defaults6 {
-    ipv6 {
-        preference 50;
-    };
-    route {{ internal_net_v6 }} unreachable;
-    route fd00::/8 unreachable;
-}
-
-protocol static dn42_roa4 {
-    roa4 {
-        table roa_v4;
-    };
-    include "dn42_roa_bird2_4.conf";
-}
-
-protocol static dn42_roa6 {
-    roa6 {
-        table roa_v6;
-    };
-    include "dn42_roa_bird2_6.conf";
 }

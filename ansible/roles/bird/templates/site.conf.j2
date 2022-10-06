@@ -1,0 +1,72 @@
+########################################################################
+# LOCAL PROTOCOLS                                                      #
+########################################################################
+
+protocol direct advertised {
+    ipv4 {
+        import where is_internal();
+    };
+    ipv6 {
+        import where is_internal();
+    };
+{% set if_ns = namespace(ifs=[]) %}
+{% set if_ns.ifs = if_ns.ifs + [loopback_if] %}
+{% set if_ns.ifs = if_ns.ifs + advertised_ifs|default([]) %}
+    interface {% set comma = joiner() %}{% for if in if_ns.ifs %}{{ comma() }}"{{ if }}"{% endfor %};
+}
+
+protocol static defaults4 {
+    ipv4 {
+        preference 50;
+    };
+    route {{ private_net_v4 }} unreachable;
+    route {{ internal_net_v4 }} unreachable;
+    route 172.20.0.0/14 unreachable;
+    route 172.31.0.0/16 unreachable;
+    route 10.0.0.0/8 unreachable;
+}
+
+protocol static defaults6 {
+    ipv6 {
+        preference 50;
+    };
+    route {{ internal_net_v6 }} unreachable;
+    route fd00::/8 unreachable;
+}
+
+
+########################################################################
+# BASIC BGP CONFIGURATION                                              #
+########################################################################
+
+template bgp bgp_base {
+    hold time 90;
+    startup hold time 90;
+    ipv4 {
+        extended next hop;
+        next hop self ebgp;
+    };
+    ipv6 {
+        next hop self ebgp;
+    };
+}
+
+
+########################################################################
+# SITE NETWORK                                                         #
+########################################################################
+
+template bgp site from bgp_base {
+    ipv4 {
+        import where is_internal() || is_default();
+        export where
+            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
+            || (is_default() && source = RTS_BGP);
+    };
+    ipv6 {
+        import where is_internal() || is_default();
+        export where
+            (is_internal() && source ~ [ RTS_BGP, RTS_DEVICE ])
+            || (is_default() && source = RTS_BGP);
+    };
+}

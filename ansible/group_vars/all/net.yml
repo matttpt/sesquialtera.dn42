@@ -11,4 +11,4 @@ private_net_v4: 192.168.0.0/16
 internal_net_v6: fda0:281f:5817::/48
 
 # Our external DN42 autonomous system number.
-bgp_as: 4242420703
+internal_as: 4242420703

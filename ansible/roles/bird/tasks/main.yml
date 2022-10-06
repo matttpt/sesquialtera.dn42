@@ -1,5 +1,33 @@
 ---
 
+# Since we configure BIRD to install blackhole default routes as
+# backstops, we need to ensure that it can connect out (and install any
+# default routes that it receives) as soon as it's started below.
+# Otherwise, we may lose our connection to the host. Therefore, we need
+# to apply changes to the firewall *first*.
+
+- name: install inbound firewall rules for bird
+  copy:
+    src: bird.in.nft
+    dest: /etc/nftables/in.d/bird.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall
+
+- name: install outbound firewall rules for bird
+  copy:
+    src: bird.out.nft
+    dest: /etc/nftables/out.d/bird.nft
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload firewall
+  tags: firewall
+
+- meta: flush_handlers
+
 - name: install bird2
   apt:
     pkg: bird2
@@ -31,47 +59,26 @@
   notify: reload bird
   tags: conf
 
-- name: install bird ospf configuration
+- name: install bird router scope configuration
   template:
-    src: ospf.conf.j2
-    dest: /etc/bird/ospf.conf
+    src: '{{ router_scope }}.conf.j2'
+    dest: /etc/bird/{{ router_scope }}.conf
     owner: bird
     group: bird
     mode: '0600'
   notify: reload bird
   tags: conf
 
-- name: install bird role configuration
+- name: install bird router site role configuration
   template:
-    src: '{{ router_role }}.conf.j2'
-    dest: /etc/bird/{{ router_role }}.conf
+    src: '{{ router_site_role }}.conf.j2'
+    dest: /etc/bird/{{ router_site_role }}.conf
     owner: bird
     group: bird
     mode: '0600'
   notify: reload bird
   tags: conf
-
-- name: install bird rip configuration
-  template:
-    src: rip.conf.j2
-    dest: /etc/bird/rip.conf
-    owner: bird
-    group: bird
-    mode: '0600'
-  notify: reload bird
-  when: rip_ifs is defined
-  tags: conf
-
-- name: install bird radv configuration
-  template:
-    src: radv.conf.j2
-    dest: /etc/bird/radv.conf
-    owner: bird
-    group: bird
-    mode: '0600'
-  notify: reload bird
-  when: radv_ifs is defined
-  tags: conf
+  when: router_site_role is defined
 
 - name: install script to update dn42 roa data
   copy:
@@ -80,13 +87,13 @@
     owner: bird
     group: bird
     mode: '0700'
-  when: router_role == 'backbone'
+  when: router_scope == 'backbone'
 
 - name: download initial dn42 roa data
   command:
     cmd: /usr/local/bin/update-dn42-roa.sh
     creates: /etc/bird/dn42_roa_bird2_*.conf
-  when: router_role == 'backbone'
+  when: router_scope == 'backbone'
 
 - name: install cron job to periodically update dn42 roa data
   cron:
@@ -95,7 +102,7 @@
     minute: "0"
     hour: '*/3'
     job: 'sleep $(shuf -i 0-600 -n 1) && /usr/local/bin/update-dn42-roa.sh'
-  when: router_role == 'backbone'
+  when: router_scope == 'backbone'
 
 - name: configure prometheus bird exporter for bird2
   lineinfile:
@@ -116,23 +123,3 @@
     name: prometheus-bird-exporter
     state: started
     enabled: yes
-
-- name: install inbound firewall rules for bird
-  copy:
-    src: bird.in.nft
-    dest: /etc/nftables/in.d/bird.nft
-    owner: root
-    group: root
-    mode: '0644'
-  notify: reload firewall
-  tags: firewall
-
-- name: install outbound firewall rules for bird
-  copy:
-    src: bird.out.nft
-    dest: /etc/nftables/out.d/bird.nft
-    owner: root
-    group: root
-    mode: '0644'
-  notify: reload firewall
-  tags: firewall

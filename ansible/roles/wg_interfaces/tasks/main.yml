@@ -13,13 +13,14 @@
             ]
         }}
   when:
-  - inventory_hostname in groups.wg_mesh
+  - inventory_hostname in groups.backbones
   - item != inventory_hostname
   - item not in wg_mesh_exclude|default([])
   - inventory_hostname not in hostvars[item].wg_mesh_exclude|default([])
+  - site_group != hostvars[item].site_group
   - wg_mesh_endpoint_address is defined
     or hostvars[item].wg_mesh_endpoint_address is defined
-  loop: '{{ groups.wg_mesh }}'
+  loop: '{{ groups.backbones }}'
 
 - name: install wireguard /etc/network/interfaces configuration
   template:

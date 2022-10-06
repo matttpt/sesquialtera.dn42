@@ -9,9 +9,10 @@ docker_net_v6: fda0:281f:5817:1::/64
 loopback_if: loopback-addrs
 public_ifs: [eth0]
 dn42_ifs: [dn42-highdef, dn42-kioubit, dn42-lutoma, dn42-tech9]
-manual_access_ifs: [dbr-general]
-user_ifs: [int-users]
-endpoint_ifs: [dbr-general, int-users]
+access_ifs: [dbr-general]
+protected_ifs:
+- name: int-users
+advertised_ifs: [dbr-general, int-users]
 
 wg_public_key: 'pocfYuG45CIvYHDrLK4XV3GrdVVlK6vhKJMEAfq7Dn8='
 wg_mesh_address: 'fe80::1'
@@ -87,7 +88,6 @@ bgp_manual_peers:
 - name: int_svc
   template: service_advertisement
   neighbor: range {{ docker_net_v6 }}
-  as: '{{ bgp_as }}'
 
 public_port_forwards:
 - ports: [80, 443]

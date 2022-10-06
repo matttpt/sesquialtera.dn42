@@ -13,6 +13,6 @@
   gather_facts: no
   remote_user: '{{ admin_user }}'
   become: yes
-  hosts: wireguards
+  hosts: backbones
   roles:
   - wg_interfaces

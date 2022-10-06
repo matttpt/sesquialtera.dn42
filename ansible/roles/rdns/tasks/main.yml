@@ -43,9 +43,9 @@
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 0
     env:
-      SA_LOCAL_AS: '"{{ bgp_as }}"'
+      SA_LOCAL_AS: '4200000999'
       SA_NEIGHBOR: '{{ internal_ipv6 }}'
-      SA_PEER_AS: '"{{ bgp_as }}"'
+      SA_PEER_AS: '4200000998'
       SA_IPV4: '{{ rdns_ipv4 }}'
       SA_IPV6: '{{ rdns_ipv6 }}'
       SA_HEALTHCHECK_COMMAND: "dig +short @:: 127.in-addr.arpa soa | grep -v '^$' >/dev/null"
