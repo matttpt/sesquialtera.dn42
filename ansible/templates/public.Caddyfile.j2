@@ -1,0 +1,15 @@
+dn42.sesquialtera.net {
+    encode zstd gzip
+    root * /srv/dn42.sesquialtera.net
+    file_server
+}
+
+matthew.ingwersen.org {
+    encode zstd gzip
+    root * /srv/matthew.ingwersen.org
+    file_server
+}
+
+:9080 {
+    metrics /metrics
+}

@@ -10,11 +10,11 @@
 
 - name: copy caddyfile
   template:
-    src: Caddyfile.j2
+    src: '{{ ingress_caddyfile }}'
     dest: /usr/local/etc/caddy/{{ ingress_name }}/Caddyfile
     owner: root
     group: root
-    mode: '0755'
+    mode: '0644'
   notify: reload caddy
   tags: conf
 
@@ -25,7 +25,7 @@
 - name: create and start caddy container
   docker_container:
     name: ingress-{{ ingress_name }}
-    image: caddy:2.4.6
+    image: caddy:2.5.2
     restart_policy: unless-stopped
     volumes:
     - '/usr/local/etc/caddy/{{ ingress_name }}:/etc/caddy'
