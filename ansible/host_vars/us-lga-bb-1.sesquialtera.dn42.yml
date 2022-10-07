@@ -94,3 +94,7 @@ public_port_forwards:
   proto: tcp
   dest_v4: '{{ anycast_ips["ingress-public"].ipv4 }}'
   dest_v6: '{{ anycast_ips["ingress-public"].ipv6 }}'
+- ports: [443]
+  proto: udp
+  dest_v4: '{{ anycast_ips["ingress-public"].ipv4 }}'
+  dest_v6: '{{ anycast_ips["ingress-public"].ipv6 }}'
