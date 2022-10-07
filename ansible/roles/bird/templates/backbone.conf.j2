@@ -180,12 +180,14 @@ template bgp site from bgp_base {
         export where
             (is_internal() && source = RTS_DEVICE)
             || (is_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
+        preference 110;
     };
     ipv6 {
         import where is_internal() && !is_default();
         export where
             (is_internal() && source = RTS_DEVICE)
             || (is_default() && source ~ [ RTS_BGP, RTS_STATIC ]);
+        preference 110;
     };
 }
 
