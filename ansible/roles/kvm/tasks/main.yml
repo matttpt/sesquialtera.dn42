@@ -1,0 +1,34 @@
+---
+
+- name: install libvirt-daemon-system and qemu-system-x86
+  apt:
+    pkg:
+    - libvirt-daemon-system
+    - qemu-system-x86
+    install_recommends: no
+
+- name: start libvirtd
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+- name: shutdown libvirt domains on shutdown
+  lineinfile:
+    dest: /etc/default/libvirt-guests
+    insertafter: '^#ON_SHUTDOWN= '
+    regexp: '^ON_SHUTDOWN='
+    line: 'ON_SHUTDOWN=shutdown'
+
+- name: add admin to the libvirt group
+  user:
+    name: '{{ admin_user }}'
+    groups: libvirt
+    append: yes
+
+- name: install hypervisor utilities
+  apt:
+    pkg:
+    - lvm2
+    - python3-libvirt
+    - qemu-utils

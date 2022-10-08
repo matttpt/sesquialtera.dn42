@@ -1,0 +1,11 @@
+---
+
+# This playbook installs QEMU/KVM and the libvirt daemon on hypervisors.
+
+- name: install hypervisors
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: hypervisors
+  roles:
+  - kvm
