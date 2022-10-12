@@ -17,7 +17,6 @@ protocol kernel kernel4 {
         };
     };
     metric 512;  # This is high enough not to override kernel device routes.
-    merge paths on;
 }
 
 protocol kernel kernel6 {
@@ -26,5 +25,4 @@ protocol kernel kernel6 {
         export where source ~ [ RTS_OSPF, RTS_BGP, RTS_STATIC ];
     };
     metric 512;
-    merge paths on;
 }
