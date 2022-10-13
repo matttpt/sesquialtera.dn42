@@ -53,7 +53,7 @@
 - name: create and start knot service advertisement sidecar
   docker_container:
     name: adns-sa
-    image: service-advertisement:20220323
+    image: service-advertisement:20221012
     restart_policy: unless-stopped
     capabilities:
     - net_admin

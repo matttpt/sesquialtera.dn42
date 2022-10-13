@@ -36,7 +36,7 @@
 - name: create and start unbound service advertisement sidecar
   docker_container:
     name: rdns-sa
-    image: service-advertisement:20220323
+    image: service-advertisement:20221012
     restart_policy: unless-stopped
     capabilities:
     - net_admin
