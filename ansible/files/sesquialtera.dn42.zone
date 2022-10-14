@@ -1,12 +1,16 @@
 $ORIGIN sesquialtera.dn42.
 
-@               86400 IN SOA    ns1 matttpt.gmail.com. 2022090800 900 300 864000 900
+@               86400 IN SOA    ns1 matttpt.gmail.com. 2022101400 900 300 864000 900
                 86400 IN NS     ns1
                 86400 IN NS     ns2
 
 ; Network infrastructure
 us-lga-bb-1     86400 IN A      172.23.71.33
                 86400 IN AAAA   fda0:281f:5817::1
+us-beh-bb-1     86400 IN A      172.23.71.48
+                86400 IN AAAA   fda0:281f:5817::10
+us-beh-hv-k320  86400 IN A      172.23.71.50
+                86400 IN AAAA   fda0:281f:5817::12
 
 ; Application: authoritative DNS
 ns1             86400 IN A      172.23.71.61
