@@ -1,6 +1,6 @@
 $ORIGIN 32/27.71.23.172.in-addr.arpa.
 
-@   86400 IN SOA    ns1.sesquialtera.dn42. matttpt.gmail.com. 2022101400 900 300 864000 900
+@   86400 IN SOA    ns1.sesquialtera.dn42. matttpt.gmail.com. 2022101700 900 300 864000 900
     86400 IN NS     ns1.sesquialtera.dn42.
     86400 IN NS     ns2.sesquialtera.dn42.
 
@@ -8,6 +8,7 @@ $ORIGIN 32/27.71.23.172.in-addr.arpa.
 33  86400 IN PTR    us-lga-bb-1.sesquialtera.dn42.
 48  86400 IN PTR    us-beh-bb-1.sesquialtera.dn42.
 50  86400 IN PTR    us-beh-hv-k320.sesquialtera.dn42.
+51  86400 IN PTR    us-beh-hv-ic31.sesquialtera.dn42.
 
 ; Application: DN42 HTTP(S) ingress
 60  86400 IN PTR    ingress-dn42.sesquialtera.dn42.
