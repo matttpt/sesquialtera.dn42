@@ -47,6 +47,12 @@ include "{{ router_scope }}.conf";
 {% if router_site_role is defined %}
 include "{{ router_site_role }}.conf";
 {% endif %}
+{% if radv_ifs is defined %}
+include "radv.conf";
+{% endif %}
+{% if rip_ifs is defined %}
+include "rip.conf";
+{% endif %}
 
 template bgp service_advertisement from bgp_base {
     local as 4200000998;

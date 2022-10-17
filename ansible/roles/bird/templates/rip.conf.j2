@@ -1,43 +1,12 @@
-filter rip_export {
-    if (net = {{ internal_ipv4 }}/32 && source = RTS_DEVICE)
-        || (net = {{ internal_ipv6 }}/128 && source = RTS_OSPF)
-{% if docker_net_v4 is defined %}
-        || (net = {{ docker_net_v4 }} && source = RTS_DEVICE)
-{% endif %}
-{% if docker_net_v6 is defined %}
-        || (net = {{ docker_net_v6 }} && source = RTS_DEVICE)
-{% endif %}
-    then
-    {
-        accept;
-{% if router_role == 'backbone' %}
-    } else if
-        (is_dn42_default()
-         || net = {{ internal_net_v4 }}
-         || net = {{ private_net_v4 }})
-        && (source ~ [RTS_STATIC, RTS_BGP])
-    then {
-        accept;
-{% endif %}
-    } else {
-        reject;
-    }
-}
+########################################################################
+# RIP FOR HOME NETWORKS (ADVERTISING ROUTES TO HOME ROUTERS)           #
+########################################################################
 
 protocol rip rip4 {
     ipv4 {
         import none;
-        export filter rip_export;
-    };
-{% for if in rip_ifs %}
-    interface "{{ if }}";
-{% endfor %}
-}
-
-protocol rip ng rip6 {
-    ipv6 {
-        import none;
-        export filter rip_export;
+        export where (is_dn42_default() || is_internal_default())
+            && (source ~ [RTS_STATIC, RTS_BGP]);
     };
 {% for if in rip_ifs %}
     interface "{{ if }}";

@@ -80,6 +80,28 @@
   tags: conf
   when: router_site_role is defined
 
+- name: install bird router advertisement configuration
+  template:
+    src: radv.conf.j2
+    dest: /etc/bird/radv.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+  when: radv_ifs is defined
+
+- name: install bird RIP configuration
+  template:
+    src: rip.conf.j2
+    dest: /etc/bird/rip.conf
+    owner: bird
+    group: bird
+    mode: '0600'
+  notify: reload bird
+  tags: conf
+  when: rip_ifs is defined
+
 - name: install script to update dn42 roa data
   copy:
     src: update-dn42-roa.sh

@@ -1,3 +1,7 @@
+########################################################################
+# ICMPV6 ROUTER ADVERTISEMENT FOR HOME NETWORKS                        #
+########################################################################
+
 protocol radv {
     propagate routes yes;
     ipv6 {
@@ -7,9 +11,10 @@ protocol radv {
         skip yes;
     };
 {% for if in radv_ifs %}
-    interface "{{ if }}" {
+
+    interface "{{ if.name }}" {
         default lifetime 0;
-        prefix {{ radv_ifs[if] }} {
+        prefix {{ if.prefix }} {
             skip no;
         };
     };
