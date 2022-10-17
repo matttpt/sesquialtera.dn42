@@ -19,14 +19,22 @@ function is_dn42() {
         || net ~ fd00::/8;
 }
 
-function is_default() {
+function is_dn42_default() {
     return net = 172.20.0.0/14
         || net = 172.31.0.0/16
         || net = 10.0.0.0/8
-        || net = fd00::/8
-        || net = {{ internal_net_v4 }}
+        || net = fd00::/8;
+}
+
+function is_internal_default() {
+    return net = {{ internal_net_v4 }}
         || net = {{ private_net_v4 }}
-        || net = {{ internal_net_v6 }}
+        || net = {{ internal_net_v6 }};
+}
+
+function is_default() {
+    return is_dn42_default()
+        || is_internal_default()
         || net = 0.0.0.0/0
         || net = ::/0;
 }
