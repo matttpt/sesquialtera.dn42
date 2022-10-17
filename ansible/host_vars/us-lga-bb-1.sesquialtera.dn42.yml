@@ -4,7 +4,7 @@ internal_ipv4: 172.23.71.33
 internal_ipv6: fda0:281f:5817::1
 
 docker_net_v4: 192.168.1.0/24
-docker_net_v6: fda0:281f:5817:1::/64
+docker_net_v6: fda0:281f:5817:10::/64
 
 loopback_if: loopback-addrs
 public_ifs: [eth0]

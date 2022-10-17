@@ -59,27 +59,27 @@ unicast_ips:
   adns:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.53
-      ipv6: fda0:281f:5817:1::53
+      ipv6: fda0:281f:5817:10::53
   rdns:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.54
-      ipv6: fda0:281f:5817:1::54
+      ipv6: fda0:281f:5817:10::54
   prometheus:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.90
-      ipv6: fda0:281f:5817:1::9090
+      ipv6: fda0:281f:5817:10::9090
   grafana:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.30
-      ipv6: fda0:281f:5817:1::3000
+      ipv6: fda0:281f:5817:10::3000
   ingress-dn42:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.42
-      ipv6: fda0:281f:5817:1::42
+      ipv6: fda0:281f:5817:10::42
   ingress-public:
     us-lga-bb-1.sesquialtera.dn42:
       ipv4: 192.168.1.80
-      ipv6: fda0:281f:5817:1::80
+      ipv6: fda0:281f:5817:10::80
 
 # This configures Prometheus to scrape the containers belonging to these
 # applications (using their unicast addresses) on a specified port.
