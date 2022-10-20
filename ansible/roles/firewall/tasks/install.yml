@@ -1,0 +1,41 @@
+---
+
+- name: install nftables
+  apt:
+    pkg: nftables
+    state: present
+  register: nftables
+
+- name: detect whether nftables is enabled
+  service_facts:
+
+# This is so that the SSH connection gets tracked *before* we load the
+# restrictive firewall. Otherwise, SSH can't send a response, because
+# the connection isn't tracked yet, and Ansible hangs.
+- name: install nftables bootstrap configuration
+  copy:
+    src: nftables-bootstrap.conf
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_facts.services['nftables.service'].status == 'disabled'
+
+- name: start nftables
+  service:
+    name: nftables
+    state: started
+    enabled: yes
+
+- name: create firewall configuration directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+  - /etc/nftables/in.d/
+  - /etc/nftables/out.d/
+  - /etc/nftables/br-in.d/
+  - /etc/nftables/br-out.d/

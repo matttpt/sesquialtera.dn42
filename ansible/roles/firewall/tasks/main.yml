@@ -35,7 +35,7 @@
     group: root
     mode: '0644'
   notify: reload firewall
-  tags: firewall-conf
+  tags: conf
 
 - name: create firewall configuration directories
   file:

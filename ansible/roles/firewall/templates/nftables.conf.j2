@@ -63,52 +63,65 @@ table inet firewall {
 
         iifname vmap {
 {% for if in computed_ifs.bb %}
-            "{{ if }}" : goto fwd-from-backbone,
+            "{{ if }}" : continue,
 {% endfor %}
 {% for if in computed_ifs.ac %}
-            "{{ if }}" : goto fwd-from-access,
-{% endfor %}
-{% for if in dn42_ifs|default([]) %}
-            "{{ if }}" : goto fwd-from-dn42,
+            "{{ if }}" : jump fwd-from-access-or-protected,
 {% endfor %}
 {% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : goto fwd-from-access,
+            "{{ if.name }}" : jump fwd-from-access-or-protected,
+{% endfor %}
+{% for if in dn42_ifs|default([]) %}
+            "{{ if }}" : jump fwd-from-dn42,
 {% endfor %}
 {% for if in public_ifs|default([]) %}
-            "{{ if }}" : goto fwd-from-public,
+            "{{ if }}" : jump fwd-from-public,
+{% endfor %}
+{% for if in home_ifs|default([]) %}
+            "{{ if }}" : jump fwd-from-home,
 {% endfor %}
         }
-    }
 
-    chain fwd-from-backbone {
         oifname vmap {
 {% for if in computed_ifs.bb %}
             "{{ if }}" : accept,
 {% endfor %}
 {% for if in computed_ifs.ac %}
-            "{{ if }}" : goto fwd-backbone-to-access,
+            "{{ if }}" : goto fwd-to-access,
 {% endfor %}
 {% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : goto fwd-backbone-to-protected-{{ if.name }},
+            "{{ if.name }}" : goto fwd-to-protected-{{ if.name }},
 {% endfor %}
 {% for if in dn42_ifs|default([]) %}
-            "{{ if }}" : goto fwd-backbone-to-dn42,
+            "{{ if }}" : goto fwd-to-dn42,
 {% endfor %}
 {% for if in public_ifs|default([]) %}
-            "{{ if }}" : goto fwd-internal-to-public,
+            "{{ if }}" : goto fwd-to-public,
+{% endfor %}
+{% for if in home_ifs|default([]) %}
+            "{{ if }}" : goto fwd-to-home,
 {% endfor %}
         }
     }
 
-    chain fwd-backbone-to-access {
+    chain fwd-from-access-or-protected {
+        ip saddr $INTERNAL_NETS_V4 return
+        ip6 saddr $INTERNAL_NETS_V6 return
+        drop
+    }
+
+    chain fwd-to-access {
         ip daddr $INTERNAL_NETS_V4 accept
         ip6 daddr $INTERNAL_NETS_V6 accept
     }
 
 {% for if in protected_ifs|default([]) %}
-    chain fwd-backbone-to-protected-{{ if.name }} {
-        ip daddr != $INTERNAL_NETS_V4 reject
-        ip6 daddr != $INTERNAL_NETS_V6 reject
+    chain fwd-to-protected-{{ if.name }} {
+{% if if.work_around_bridge_calling_iptables|default(false) %}
+        iifname "{{ if.name }}" accept comment "Work-around for bridge calling iptables"
+{% endif %}
+        ip daddr != $INTERNAL_NETS_V4 drop
+        ip6 daddr != $INTERNAL_NETS_V6 drop
         ct state { established, related } accept
 {% if if.allowed_nets|default([])|ipv4 %}
         ip saddr { {{ if.allowed_nets|ipv4|join(', ') }} } accept
@@ -119,128 +132,55 @@ table inet firewall {
     }
 
 {% endfor %}
-    chain fwd-backbone-to-dn42 {
+    chain fwd-from-dn42 {
+        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $DN42_AND_INTERNAL_NETS_V4 return
+        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 return
+        drop
+    }
+
+    chain fwd-to-dn42 {
         ip saddr $DN42_AND_INTERNAL_NETS_V4 ip daddr $DN42_NETS_V4 ip daddr != {{ internal_net_v4 }} accept
         ip6 saddr $DN42_NETS_V6 ip6 daddr $DN42_NETS_V6 ip6 daddr != $INTERNAL_NETS_V6 accept
     }
 
-    chain fwd-internal-to-public {
+    chain fwd-from-public {
+        ip saddr $DN42_AND_INTERNAL_NETS_V4 drop
+        ip6 saddr $DN42_NETS_V6 drop
+        ip daddr $INTERNAL_NETS_V4 ct state { established, related } return
+        ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } return
+{% if public_port_forwards is defined and public_port_forwards != [] %}
+        ip daddr . meta l4proto . th dport {
+{% for dnat in public_port_forwards %}
+            {{ dnat.dest_v4 }} . {{ dnat.proto }} . {{ dnat.port }},
+{% endfor %}
+        } return
+        ip6 daddr . meta l4proto . th dport {
+{% for dnat in public_port_forwards %}
+            {{ dnat.dest_v6 }} . {{ dnat.proto }} . {{ dnat.port }},
+{% endfor %}
+        } return
+{% endif %}
+        drop
+    }
+
+    chain fwd-to-public {
         ip saddr $INTERNAL_NETS_V4 ip daddr != $DN42_AND_INTERNAL_NETS_V4 accept
         ip6 saddr $INTERNAL_NETS_V6 ip6 daddr != $DN42_NETS_V6 accept
     }
 
-    chain fwd-from-access {
-        oifname vmap {
-{% for if in computed_ifs.bb %}
-            "{{ if }}" : goto fwd-access-to-backbone,
-{% endfor %}
-{% for if in computed_ifs.ac %}
-            "{{ if }}" : goto fwd-access-to-access,
-{% endfor %}
-{% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : goto fwd-access-to-protected-{{ if.name }},
-{% endfor %}
-{% for if in dn42_ifs|default([]) %}
-            "{{ if }}" : goto fwd-access-to-dn42,
-{% endfor %}
-{% for if in public_ifs|default([]) %}
-            "{{ if }}" : goto fwd-internal-to-public,
-{% endfor %}
-        }
+    chain fwd-from-home {
+        ip saddr $INTERNAL_NETS_V4 ip daddr $DN42_AND_INTERNAL_NETS_V4 return
+        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 return
+        ip saddr != $DN42_AND_INTERNAL_NETS_V4 ip daddr $INTERNAL_NETS_V4 ct state { established, related } return
+        ip6 saddr != $DN42_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } return
+        drop
     }
 
-    chain fwd-access-to-backbone {
-        ip saddr $INTERNAL_NETS_V4 accept
-        ip6 saddr $INTERNAL_NETS_V6 accept
-    }
-
-    chain fwd-access-to-access {
-        ip saddr $INTERNAL_NETS_V4 ip daddr $INTERNAL_NETS_V4 accept
-        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 accept
-    }
-
-{% for if in protected_ifs|default([]) %}
-    chain fwd-access-to-protected-{{ if.name }} {
-{% if if.work_around_bridge_calling_iptables|default(false) %}
-        iifname "{{ if.name }}" accept comment "Work-around for bridge calling iptables"
-{% endif %}
-        ip daddr != $INTERNAL_NETS_V4 reject
-        ip6 daddr != $INTERNAL_NETS_V6 reject
-        ip saddr != $INTERNAL_NETS_V4 reject
-        ip6 saddr != $INTERNAL_NETS_V6 reject
-        ct state { established, related } accept
-{% if if.allowed_nets|default([])|ipv4 %}
-        ip saddr { {{ if.allowed_nets|ipv4|join(', ') }} } accept
-{% endif %}
-{% if if.allowed_nets|default([])|ipv6 %}
-        ip6 saddr { {{ if.allowed_nets|ipv6|join(', ') }} } accept
-{% endif %}
-    }
-
-{% endfor %}
-    chain fwd-access-to-dn42 {
-        ip saddr $INTERNAL_NETS_V4 ip daddr $DN42_NETS_V4 ip daddr != {{ internal_net_v4 }} accept
-        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 ip6 daddr != $INTERNAL_NETS_V6 accept
-    }
-
-    chain fwd-from-dn42 {
-        oifname vmap {
-{% for if in computed_ifs.bb %}
-            "{{ if }}" : goto fwd-dn42-to-backbone,
-{% endfor %}
-{% for if in computed_ifs.ac %}
-            "{{ if }}" : goto fwd-dn42-to-access,
-{% endfor %}
-{% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : goto fwd-dn42-to-protected,
-{% endfor %}
-{% for if in dn42_ifs|default([]) %}
-            "{{ if }}" : goto fwd-dn42-to-dn42,
-{% endfor %}
-        }
-    }
-
-    chain fwd-dn42-to-backbone {
-        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $DN42_AND_INTERNAL_NETS_V4 accept
-        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 accept
-    }
-
-    chain fwd-dn42-to-access {
-        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $INTERNAL_NETS_V4 accept
-        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 accept
-    }
-
-    chain fwd-dn42-to-protected {
-        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_ipv4 }} ip daddr $INTERNAL_NETS_V4 ct state { established, related } accept
-        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } accept
-    }
-
-    chain fwd-dn42-to-dn42 {
-        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $DN42_NETS_V4 ip daddr != {{ internal_net_v4 }} accept
-        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 ip6 daddr != $INTERNAL_NETS_V6 accept
-    }
-
-    chain fwd-from-public {
-{% for dnat in public_port_forwards|default([]) %}
-        ip daddr {{ dnat.dest_v4 }} {{ dnat.proto }} dport { {{ dnat.ports|join(', ') }} } accept
-        ip6 daddr {{ dnat.dest_v6 }} {{ dnat.proto }} dport { {{ dnat.ports|join(', ') }} } accept
-{% endfor %}
-        oifname vmap {
-{% for if in computed_ifs.bb %}
-            "{{ if }}" : goto fwd-public-to-internal,
-{% endfor %}
-{% for if in computed_ifs.ac %}
-            "{{ if }}" : goto fwd-public-to-internal,
-{% endfor %}
-{% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : goto fwd-public-to-internal,
-{% endfor %}
-        }
-    }
-
-    chain fwd-public-to-internal {
-        ip daddr $INTERNAL_NETS_V4 ct state { established, related } accept
-        ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } accept
+    chain fwd-to-home {
+        ip saddr $DN42_AND_INTERNAL_NETS_V4 ip daddr $INTERNAL_NETS_V4 ct state { established, related } accept
+        ip6 saddr $DN42_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } accept
+        ip saddr $INTERNAL_NETS_V4 ip daddr != $DN42_AND_INTERNAL_NETS_V4 accept
+        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr != $DN42_NETS_V6 accept
     }
 
     chain output {
@@ -276,16 +216,35 @@ table inet firewall {
 
     chain prerouting {
         type nat hook prerouting priority -101;
-{% for dnat in public_port_forwards|default([]) %}
-        iifname { {{ public_ifs|join(',') }} } {{ dnat.proto }} dport { {{ dnat.ports|join(', ') }} } dnat ip to {{ dnat.dest_v4 }}
-        iifname { {{ public_ifs|join(',') }} } {{ dnat.proto }} dport { {{ dnat.ports|join(', ') }} } dnat ip6 to {{ dnat.dest_v6 }}
+{% if public_port_forwards is defined
+   and public_port_forwards != []
+   and public_ifs is defined
+   and public_ifs != [] %}
+        dnat ip to iifname . meta l4proto . th dport map {
+{% for dnat in public_port_forwards %}
+{% for if in public_ifs %}
+            "{{ if }}" . {{ dnat.proto }} . {{ dnat.port }} : {{ dnat.dest_v4 }},
 {% endfor %}
+{% endfor %}
+        }
+        dnat ip6 to iifname . meta l4proto . th dport map {
+{% for dnat in public_port_forwards %}
+{% for if in public_ifs %}
+            "{{ if }}" . {{ dnat.proto }} . {{ dnat.port }} : {{ dnat.dest_v6 }},
+{% endfor %}
+{% endfor %}
+        }
+{% endif %}
     }
 
     chain postrouting {
         type nat hook postrouting priority 99;
 {% if public_ifs is defined and public_ifs != [] %}
         oifname { {{ public_ifs|join(',') }} } masquerade
+{% endif %}
+{% if home_ifs is defined and home_ifs != [] %}
+        oifname { {{ home_ifs|join(',') }} } ip daddr != $INTERNAL_NETS_V4 masquerade
+        oifname { {{ home_ifs|join(',') }} } ip6 daddr != $INTERNAL_NETS_V6 masquerade
 {% endif %}
 {% if internal_ipv4|ipaddr(internal_net_v4) %}
         ip saddr {{ private_net_v4 }} ip daddr != {{ internal_net_v4 }} ip daddr $DN42_NETS_V4 snat to {{ internal_ipv4 }}

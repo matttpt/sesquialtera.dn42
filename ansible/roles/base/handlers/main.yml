@@ -5,11 +5,6 @@
     name: ssh
     state: reloaded
 
-- name: reload firewall
-  service:
-    name: nftables
-    state: reloaded
-
 - name: update ca certificates
   command:
     cmd: update-ca-certificates

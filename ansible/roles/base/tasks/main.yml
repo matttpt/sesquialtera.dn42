@@ -48,8 +48,6 @@
     group: root
     mode: '0644'
 
-- import_tasks: firewall.yml
-  tags: firewall
 - import_tasks: mail.yml
 - import_tasks: ssh.yml
 - import_tasks: pki.yml

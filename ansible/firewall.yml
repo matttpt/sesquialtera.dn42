@@ -1,0 +1,13 @@
+---
+
+# This playbook installs and configures the nftables firewall on all
+# hosts. The "conf" tag can be used to perform configuration only (e.g.
+# when network interfaces change).
+
+- name: install and configure firewall
+  gather_facts: no
+  remote_user: '{{ admin_user }}'
+  become: yes
+  hosts: all
+  roles:
+  - firewall
