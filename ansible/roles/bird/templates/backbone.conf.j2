@@ -142,29 +142,45 @@ template bgp bgp_base {
 # IBGP WITH OTHER BACKBONE ROUTERS                                     #
 ########################################################################
 
-filter to_backbone {
+filter to_remote_backbone {
     if (is_internal() && source = RTS_DEVICE) || source = RTS_BGP then {
         bgp_path.delete([4200000000..4200000999]);
         accept;
     } else reject;
 }
 
-template bgp backbone from bgp_base {
+template bgp remote_backbone from bgp_base {
     local {{ internal_ipv6 }} as {{ internal_as }};
     ipv4 {
         import all;
-        export filter to_backbone;
+        export filter to_remote_backbone;
     };
     ipv6 {
         import all;
-        export filter to_backbone;
+        export filter to_remote_backbone;
+    };
+}
+
+template bgp local_backbone from bgp_base {
+    local {{ internal_ipv6 }} as {{ internal_as }};
+    ipv4 {
+        import all;
+        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
+    };
+    ipv6 {
+        import all;
+        export where (is_internal() && source = RTS_DEVICE) || source = RTS_BGP;
     };
 }
 {% for host in groups.backbones
-       if host != inventory_hostname
-       and site_group != hostvars[host].site_group %}
+       if host != inventory_hostname %}
+{% if site_group == hostvars[host].site_group %}
+{% set template = "local_backbone" %}
+{% else %}
+{% set template = "remote_backbone" %}
+{% endif %}
 
-protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }} from backbone {
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }} from {{ template }} {
     neighbor {{ hostvars[host].internal_ipv6 }} as {{ internal_as }};
 }
 {% endfor %}
