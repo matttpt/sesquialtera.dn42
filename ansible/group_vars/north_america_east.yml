@@ -1,3 +1,4 @@
 ---
 
 dn42_region: 42
+dn42_nearby_regions: [43, 44]

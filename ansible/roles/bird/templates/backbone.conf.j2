@@ -224,6 +224,18 @@ filter from_exterior {
     if net ~ ::/0 && roa_check(roa_v6, net, bgp_path.last) != ROA_VALID then {
         reject "ROA check failed for ", net, " AS ", bgp_path.last;
     }
+    if (64511, {{ dn42_region }}) ~ bgp_community then {
+        bgp_local_pref = 50;
+{% if dn42_nearby_regions is defined and dn42_nearby_regions != [] %}
+{% set or_op = joiner(" || ") %}
+    } else if {% for region in dn42_nearby_regions -%}
+                  {{ or_op() }}(64511, {{ region }}) ~ bgp_community
+              {%- endfor %} then {
+        bgp_local_pref = 40;
+{% endif %}
+    } else {
+        bgp_local_pref = 10;
+    }
     accept;
 }
 
