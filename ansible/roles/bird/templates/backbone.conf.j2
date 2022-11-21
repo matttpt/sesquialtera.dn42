@@ -233,10 +233,12 @@ filter to_exterior {
         if net != {{ internal_net_v4 }} then reject;
         if source != RTS_STATIC then reject;
         bgp_community.add((64511, {{ dn42_region }}));
+        bgp_community.add((64511, {{ dn42_country }}));
     } else if net ~ {{ internal_net_v6 }} then {
         if net != {{ internal_net_v6 }} then reject;
         if source != RTS_STATIC then reject;
         bgp_community.add((64511, {{ dn42_region }}));
+        bgp_community.add((64511, {{ dn42_country }}));
     } else if source != RTS_BGP then reject;
     bgp_path.delete([4200000000..420000999]);
     accept;
