@@ -3,7 +3,7 @@
 # Hopefully at some point we can replace this with the newer
 # docker_container_exec module.
 - name: reload caddy
-  command: docker exec ingress-{{ ingress_name }} caddy reload -config /etc/caddy/Caddyfile
+  command: docker exec ingress-{{ ingress_name }} caddy reload --config /etc/caddy/Caddyfile
 
 - name: reload firewall
   service:
