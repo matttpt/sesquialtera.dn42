@@ -1,0 +1,39 @@
+########################################################################
+# SITE CLOS NETWORK (WITH L2 SPINE SWITCHES): LEAF ROUTER              #
+########################################################################
+{% for host in groups[site_group]
+       if host != inventory_hostname
+       and hostvars[host].router_site_role == "clos_leaf_with_l2_spine" %}
+{% for net in clos_to_spine_net_names %}
+
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }}_via_{{ net }} from site {
+    local {{ clos_to_spines[net].ipv6 }} as {{ clos_leaf_as }};
+    neighbor {{ hostvars[host].clos_to_spines[net].ipv6 }} as {{ hostvars[host].clos_leaf_as }};
+    interface "{{ clos_to_spines[net].if }}";
+}
+{% endfor %}
+{% endfor %}
+{% if inventory_hostname in groups.hypervisors %}
+{% for host in groups[site_group]
+       if host != inventory_hostname
+       and hostvars[host].hypervisor is defined
+       and hostvars[host].hypervisor == inventory_hostname %}
+{% if hostvars[host].router_site_role == "clos_vm" %}
+
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }} from site {
+    local {{ clos_to_vms.ipv6 }} as {{ clos_leaf_as }};
+    neighbor {{ hostvars[host].clos_to_hypervisor.ipv6 }} as {{ clos_leaf_as }};
+    interface "{{ clos_to_vms.if }}";
+    direct;
+    rr client;
+}
+{% elif hostvars[host].router_site_role == "clos_backbone_vm" %}
+
+protocol bgp int_{{ hostvars[host].inventory_hostname_short|replace("-", "_") }} from site {
+    local {{ clos_to_backbone_vm.ipv6 }} as {{ clos_leaf_as }};
+    neighbor {{ hostvars[host].clos_to_hypervisor.ipv6 }} as {{ internal_as }};
+    interface "{{ clos_to_backbone_vm.if }}";
+}
+{% endif %}
+{% endfor %}
+{% endif %}

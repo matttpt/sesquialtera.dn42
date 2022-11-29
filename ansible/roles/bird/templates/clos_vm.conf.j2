@@ -1,0 +1,10 @@
+########################################################################
+# SITE CLOS NETWORK: VIRTUAL MACHINE                                   #
+########################################################################
+
+protocol bgp int_{{ hostvars[hypervisor].inventory_hostname_short|replace("-", "_") }} from site {
+    local {{ clos_to_hypervisor.ipv6 }} as {{ hostvars[hypervisor].clos_leaf_as }};
+    neighbor {{ hostvars[hypervisor].clos_to_vms.ipv6 }} as {{ hostvars[hypervisor].clos_leaf_as }};
+    interface "{{ clos_to_hypervisor.if }}";
+    direct;
+}
