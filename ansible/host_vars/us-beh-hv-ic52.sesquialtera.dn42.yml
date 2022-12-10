@@ -1,0 +1,19 @@
+---
+
+internal_ipv4: 172.23.71.52
+internal_ipv6: fda0:281f:5817::14
+
+loopback_if: loopback-addrs
+manual_backbone_ifs: [eno1]
+access_ifs: [guests]
+advertised_ifs: [guests]
+
+router_site_role: clos_leaf_with_l2_spine
+clos_leaf_as: 4200000002
+clos_to_spines:
+  core1:
+    ipv6: fe80::1e69:7aff:fe45:468a
+    if: eno1
+clos_to_vms:
+  ipv6: fda0:281f:5817:140::1
+  if: guests

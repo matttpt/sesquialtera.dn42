@@ -8,16 +8,28 @@ lga
 [lga]
 us-lga-bb-1.sesquialtera.dn42
 
+[north_america_central:children]
+beh
+
+[beh]
+us-beh-bb-1.sesquialtera.dn42
+us-beh-hv-ic51.sesquialtera.dn42
+us-beh-hv-ic52.sesquialtera.dn42
+us-beh-hv-k320.sesquialtera.dn42
+
 
 ########################################################################
-# ALL HOSTS BY ROUTING SCOPE                                           #
+# HOSTS BY ROUTING SCOPE                                               #
 ########################################################################
 
 [backbones]
+us-beh-bb-1.sesquialtera.dn42
 us-lga-bb-1.sesquialtera.dn42
 
 [sites]
-# None right now.
+us-beh-hv-ic51.sesquialtera.dn42
+us-beh-hv-ic52.sesquialtera.dn42
+us-beh-hv-k320.sesquialtera.dn42
 
 
 ########################################################################
@@ -25,7 +37,9 @@ us-lga-bb-1.sesquialtera.dn42
 ########################################################################
 
 [hypervisors]
-# None right now.
+us-beh-hv-ic51.sesquialtera.dn42
+us-beh-hv-ic52.sesquialtera.dn42
+us-beh-hv-k320.sesquialtera.dn42
 
 
 ########################################################################

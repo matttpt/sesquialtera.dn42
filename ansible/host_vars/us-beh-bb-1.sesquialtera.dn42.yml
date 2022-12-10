@@ -1,0 +1,28 @@
+---
+
+hypervisor: us-beh-hv-k320.sesquialtera.dn42
+
+internal_ipv4: 172.23.71.48
+internal_ipv6: fda0:281f:5817::10
+
+loopback_if: loopback-addrs
+manual_backbone_ifs: [ens3]
+home_ifs: [ens2]
+advertised_ifs: [ens2]
+
+wg_public_key: H2hdwBWdr8wHqrGlPoB+FbSJM1EwBrJbRHcRlqrBDnM=
+wg_mesh_address: 'fe80::10'
+wg_mesh_port: 30016
+
+router_originate_default_via_v4: 192.168.0.1
+router_originate_default_via_v6: 192.168.0.1
+
+router_site_role: clos_backbone_vm
+clos_to_hypervisor:
+  ipv6: fe80::5054:ff:fef3:aba8
+  if: ens3
+
+radv_ifs:
+- name: ens2
+  prefix: fda0:281f:5817:1::/64
+rip_ifs: [ens2]
