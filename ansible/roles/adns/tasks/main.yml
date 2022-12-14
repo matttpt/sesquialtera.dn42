@@ -36,7 +36,7 @@
 - name: create and start knot container
   docker_container:
     name: adns
-    image: cznic/knot:v3.2.2
+    image: cznic/knot:v3.2.4
     restart_policy: unless-stopped
     command: knotd
     volumes:
