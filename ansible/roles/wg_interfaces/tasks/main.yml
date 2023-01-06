@@ -22,15 +22,6 @@
     or hostvars[item].wg_mesh_endpoint_address is defined
   loop: '{{ groups.backbones }}'
 
-- name: install wireguard /etc/network/interfaces configuration
-  template:
-    src: wireguard-interfaces.conf.j2
-    dest: /etc/network/interfaces.d/wireguard.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify: reload wireguard interfaces
-
 - name: install wireguard interface configuration files
   template:
     src: if.conf.j2
@@ -39,13 +30,6 @@
     group: root
     mode: '0644'
   loop: '{{ wg_ifs }}'
-  notify: reload wireguard interfaces
-
-- name: ensure that /etc/network/interfaces.d files are imported
-  lineinfile:
-    path: /etc/network/interfaces
-    line: 'source /etc/network/interfaces.d/*'
-    state: present
   notify: reload wireguard interfaces
 
 - name: configure inbound firewall for wireguard
@@ -65,3 +49,10 @@
     group: root
     mode: '0644'
   notify: reload firewall
+
+- name: start wireguard interfaces
+  service:
+    name: wg-quick@{{ item.name }}
+    state: started
+    enabled: yes
+  loop: '{{ wg_ifs }}'

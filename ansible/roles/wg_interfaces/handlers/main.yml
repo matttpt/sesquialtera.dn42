@@ -5,24 +5,18 @@
     name: nftables
     state: reloaded
 
-# NOTE: The two remaining handlers are to make sure that the interfaces
-# are up and reconfigured on the Wireguard level when the configuration
-# changes. However, if the IP addresses on an interface change when the
-# interface is already up, the administrator will need to manually
-# intervene.
-- name: ensure that wireguard interfaces are up
-  shell: 'ip link | grep -Eq "[0-9]+: {{ item.name }}" || ifup {{ item.name }}'
-  loop: '{{ wg_ifs }}'
-  listen: reload wireguard interfaces
-
-# NOTE: These two commands must be run in one go, since wg setconf
-# unsets the private key on an existing interface. If we are connecting
-# over the VPN link being modified and we run these in separate
-# handlers, the link will go down after the first and we won't be able
-# to connect to reset the private key and bring the link back up!
-- name: set configuration on wireguard interfaces
+# NOTE: The remaining handler makes sure that the interfaces are
+# reconfigured on the Wireguard level when the configuration changes.
+# However, if the IP addresses on an interface change when the interface
+# is already up, the administrator will need to manually intervene.
+#
+# These two commands must be run in one go, since the wg-quick reload
+# unsets the private key. If we are connecting over the VPN link being
+# modified and we run these in separate handlers, then the link will go
+# down after the first and we won't be able to connect to reset the
+# private key and bring the link back up!
+- name: reload wireguard interfaces
   shell: |
-    wg setconf {{ item.name }} /etc/wireguard/{{ item.name }}.conf
+    systemctl reload wg-quick@{{ item.name }}
     wg set {{ item.name }} private-key /etc/wireguard/private_key
   loop: '{{ wg_ifs }}'
-  listen: reload wireguard interfaces

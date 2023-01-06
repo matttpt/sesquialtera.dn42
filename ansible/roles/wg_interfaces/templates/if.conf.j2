@@ -1,9 +1,21 @@
-{% if item.port is defined %}
 [Interface]
+{% if item.port is defined %}
 ListenPort = {{ item.port }}
-
 {% endif %}
+{% if item.address_v4 is defined %}
+{% if item.pointopoint_v4 is defined %}
+Address = {{ item.address_v6 }}
+PostUp = ip addr add {{ item.address_v4 }} peer {{ item.pointopoint_v4 }} dev {{ item.name }}
+{% else %}
+Address = {{ item.address_v4 }}, {{ item.address_v6 }}
+{% endif %}
+{% else %}
+Address = {{ item.address_v6 }}
+{% endif %}
+PostUp = wg set {{ item.name }} private-key /etc/wireguard/private_key
+Table = off
 {% for peer in item.peers %}
+
 [Peer]
 {% if peer.host is defined %}
 PublicKey = {{ hostvars[peer.host].wg_public_key }}
