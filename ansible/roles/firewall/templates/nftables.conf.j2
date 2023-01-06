@@ -63,25 +63,27 @@ table inet firewall {
 
         iifname vmap {
 {% for if in computed_ifs.bb %}
-            "{{ if }}" : continue,
+            "{{ if }}" : goto fwd-stage-2,
 {% endfor %}
 {% for if in computed_ifs.ac %}
-            "{{ if }}" : jump fwd-from-access-or-protected,
+            "{{ if }}" : goto fwd-from-access-or-protected,
 {% endfor %}
 {% for if in protected_ifs|default([]) %}
-            "{{ if.name }}" : jump fwd-from-access-or-protected,
+            "{{ if.name }}" : goto fwd-from-access-or-protected,
 {% endfor %}
 {% for if in dn42_ifs|default([]) %}
-            "{{ if }}" : jump fwd-from-dn42,
+            "{{ if }}" : goto fwd-from-dn42,
 {% endfor %}
 {% for if in public_ifs|default([]) %}
-            "{{ if }}" : jump fwd-from-public,
+            "{{ if }}" : goto fwd-from-public,
 {% endfor %}
 {% for if in home_ifs|default([]) %}
-            "{{ if }}" : jump fwd-from-home,
+            "{{ if }}" : goto fwd-from-home,
 {% endfor %}
         }
+    }
 
+    chain fwd-stage-2 {
         oifname vmap {
 {% for if in computed_ifs.bb %}
             "{{ if }}" : accept,
@@ -105,9 +107,8 @@ table inet firewall {
     }
 
     chain fwd-from-access-or-protected {
-        ip saddr $INTERNAL_NETS_V4 return
-        ip6 saddr $INTERNAL_NETS_V6 return
-        drop
+        ip saddr $INTERNAL_NETS_V4 goto fwd-stage-2
+        ip6 saddr $INTERNAL_NETS_V6 goto fwd-stage-2
     }
 
     chain fwd-to-access {
@@ -133,9 +134,8 @@ table inet firewall {
 
 {% endfor %}
     chain fwd-from-dn42 {
-        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $DN42_AND_INTERNAL_NETS_V4 return
-        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 return
-        drop
+        ip saddr $DN42_NETS_V4 ip saddr != {{ internal_net_v4 }} ip daddr $DN42_AND_INTERNAL_NETS_V4 goto fwd-stage-2
+        ip6 saddr $DN42_NETS_V6 ip6 saddr != $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 goto fwd-stage-2
     }
 
     chain fwd-to-dn42 {
@@ -146,21 +146,20 @@ table inet firewall {
     chain fwd-from-public {
         ip saddr $DN42_AND_INTERNAL_NETS_V4 drop
         ip6 saddr $DN42_NETS_V6 drop
-        ip daddr $INTERNAL_NETS_V4 ct state { established, related } return
-        ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } return
+        ip daddr $INTERNAL_NETS_V4 ct state { established, related } goto fwd-stage-2
+        ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } goto fwd-stage-2
 {% if public_port_forwards is defined and public_port_forwards != [] %}
         ip daddr . meta l4proto . th dport {
 {% for dnat in public_port_forwards %}
             {{ dnat.dest_v4 }} . {{ dnat.proto }} . {{ dnat.port }},
 {% endfor %}
-        } return
+        } goto fwd-stage-2
         ip6 daddr . meta l4proto . th dport {
 {% for dnat in public_port_forwards %}
             {{ dnat.dest_v6 }} . {{ dnat.proto }} . {{ dnat.port }},
 {% endfor %}
-        } return
+        } goto fwd-stage-2
 {% endif %}
-        drop
     }
 
     chain fwd-to-public {
@@ -169,11 +168,10 @@ table inet firewall {
     }
 
     chain fwd-from-home {
-        ip saddr $INTERNAL_NETS_V4 ip daddr $DN42_AND_INTERNAL_NETS_V4 return
-        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 return
-        ip saddr != $DN42_AND_INTERNAL_NETS_V4 ip daddr $INTERNAL_NETS_V4 ct state { established, related } return
-        ip6 saddr != $DN42_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } return
-        drop
+        ip saddr $INTERNAL_NETS_V4 ip daddr $DN42_AND_INTERNAL_NETS_V4 goto fwd-stage-2
+        ip6 saddr $INTERNAL_NETS_V6 ip6 daddr $DN42_NETS_V6 goto fwd-stage-2
+        ip saddr != $DN42_AND_INTERNAL_NETS_V4 ip daddr $INTERNAL_NETS_V4 ct state { established, related } goto fwd-stage-2
+        ip6 saddr != $DN42_NETS_V6 ip6 daddr $INTERNAL_NETS_V6 ct state { established, related } goto fwd-stage-2
     }
 
     chain fwd-to-home {
