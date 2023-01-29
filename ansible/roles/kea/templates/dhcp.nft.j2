@@ -1,0 +1,1 @@
+ether type ip udp dport bootps iifname { {{ dhcp4_ifs|join(', ') }} } accept

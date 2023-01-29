@@ -1,0 +1,11 @@
+---
+
+- name: reload kea
+  service:
+    name: isc-kea-dhcp4-server
+    state: reloaded
+
+- name: reload firewall
+  service:
+    name: nftables
+    state: reloaded
