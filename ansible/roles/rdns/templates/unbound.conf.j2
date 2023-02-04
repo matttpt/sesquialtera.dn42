@@ -36,6 +36,7 @@ server:
   trust-anchor: '23.172.in-addr.arpa. IN DS 64441 10 2 E91C0281E705317968C76689E4F36BF2207C90BDFAAD071693BB9A999D15778F'
   trust-anchor: 'neo. IN DS 56336 13 2 317F7CC14D2F74ABF560CFCE6F89F5187872573BA5A7AF9A9B14CF47E51489E5'
   trust-anchor: '127.10.in-addr.arpa. IN DS 22312 13 2 16859DEDDC7966541B4507D4612B00EA6FB95B2773E51D4BCC201E16F6178B0F'
+  trust-anchor: 'crxn. IN DS 1624 15 2 CE9AE07ABC41D7A509530DEBEFFA79D42DE7167208435D3E1881BB5448ABAEAF'
   username: '_unbound'
 
 ########################################################################
@@ -130,3 +131,12 @@ stub-zone:
   # zone, but it doesn't respond. Therefore, keep using the nameservers
   # configured here.
   stub-prime: no
+
+########################################################################
+# CRXN ZONE                                                            #
+########################################################################
+
+stub-zone:
+  name: crxn.
+  stub-addr: fd92:58b6:2b2::54
+  stub-prime: yes
