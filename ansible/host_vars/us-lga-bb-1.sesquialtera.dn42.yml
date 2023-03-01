@@ -12,7 +12,6 @@ dn42_ifs:
 - dn42-highdef
 - dn42-kioubit
 - dn42-lutoma
-- dn42-nullplane
 - dn42-tech9
 access_ifs: [dbr-general]
 protected_ifs:
@@ -51,14 +50,6 @@ wg_manual_ifs:
     allowed_ips: 0.0.0.0/0,::/0
     endpoint_address: us-nyc.dn42.lutoma.org
     endpoint_port: 42433
-- name: dn42-nullplane
-  address_v6: fe80::703/64
-  port: 20591
-  peers:
-  - public_key: oKhq3iDYFkwuyG611qCgbo6UzRm3wEiSn2CwJQn4QRA=
-    allowed_ips: 0.0.0.0/0,::/0
-    endpoint_address: rtr1.ord.nullplane.net
-    endpoint_port: 20703
 - name: dn42-tech9
   address_v4: '{{ internal_ipv4 }}/32'
   pointopoint_v4: 172.20.16.139
@@ -93,11 +84,6 @@ bgp_manual_peers:
   neighbor: fe80::acab
   interface: dn42-lutoma
   as: 64719
-- name: dn42_nullplane_ord
-  template: exterior
-  neighbor: fe80::591
-  interface: dn42-nullplane
-  as: 4242420591
 - name: dn42_tech9_chi
   template: exterior
   neighbor: fe80::1588
